@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  firstName       String
+  lastName        String
+  userName        String
+  email           String
+  password        String
+  createdAt       DateTime          @default(now())
+  profileLink     String
+  linkedinLink    String
+  githubLink      String
+  instagramLink   String
+  portfolioLink   String
+  registered      Registered[]
+  userSubmissions UserSubmissions[]
+}
+
+model Problem {
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  description        String
+  difficulty         String
+  startCode          String
+  topics             String
+  solutionCode       String
+  createdAt          DateTime           @default(now())
+  createdBy          String // Change to String for userId reference
+  constraints        String
+  expectedComplexity String
+  userId             String             @db.ObjectId
+  examples           Example[]          @relation("ProblemExamples")
+  contestQuestions   ContestQuestions[]
+  userSubmissions    UserSubmissions[]
+}
+
+model Example {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  input     String
+  output    String
+  problem   Problem @relation("ProblemExamples", fields: [problemId], references: [id])
+  problemId String  @db.ObjectId
+}
+
+model Contest {
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  url              String
+  startTime        DateTime
+  endTime          DateTime
+  owner            String
+  mediators        String
+  organisation     String
+  contestQuestions ContestQuestions[]
+  registered       Registered[]
+}
+
+model ContestQuestions {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  contest   Contest @relation(fields: [contestId], references: [id])
+  contestId String  @db.ObjectId
+  problem   Problem @relation(fields: [problemId], references: [id])
+  problemId String  @db.ObjectId
+}
+
+model Registered {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String   @db.ObjectId
+  contest      Contest  @relation(fields: [contestId], references: [id])
+  contestId    String   @db.ObjectId
+  registeredAt DateTime @default(now())
+}
+
+model UserSubmissions {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String   @db.ObjectId
+  problem      Problem  @relation(fields: [problemId], references: [id])
+  problemId    String   @db.ObjectId
+  isAccepted   Boolean
+  isInContest  Boolean
+  errorDetails String
+  submittedAt  DateTime @default(now())
+}
