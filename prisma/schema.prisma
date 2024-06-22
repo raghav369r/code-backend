@@ -15,17 +15,17 @@ datasource db {
 
 model User {
   id              String            @id @default(auto()) @map("_id") @db.ObjectId
-  firstName       String
-  lastName        String
-  userName        String
+  firstName       String?
+  lastName        String?
+  userName        String?
   email           String
   password        String
   createdAt       DateTime          @default(now())
-  profileLink     String
-  linkedinLink    String
-  githubLink      String
-  instagramLink   String
-  portfolioLink   String
+  profileLink     String?
+  linkedinLink    String?
+  githubLink      String?
+  instagramLink   String?
+  portfolioLink   String?
   registered      Registered[]
   userSubmissions UserSubmissions[]
 }
@@ -38,21 +38,31 @@ model Problem {
   topics             String
   solutionCode       String
   createdAt          DateTime           @default(now())
-  createdBy          String // Change to String for userId reference
+  createdBy          String
   constraints        String
   expectedComplexity String
   userId             String             @db.ObjectId
   examples           Example[]          @relation("ProblemExamples")
   contestQuestions   ContestQuestions[]
   userSubmissions    UserSubmissions[]
+  testCases          TestCase[]
+}
+
+model TestCase {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  problemId String  @db.ObjectId
+  input     String
+  output    String
+  Problem   Problem @relation(fields: [problemId], references: [id])
 }
 
 model Example {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  input     String
-  output    String
-  problem   Problem @relation("ProblemExamples", fields: [problemId], references: [id])
-  problemId String  @db.ObjectId
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  input       String
+  output      String
+  explanation String
+  problem     Problem @relation("ProblemExamples", fields: [problemId], references: [id])
+  problemId   String  @db.ObjectId
 }
 
 model Contest {
@@ -88,6 +98,8 @@ model Registered {
 model UserSubmissions {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   user         User     @relation(fields: [userId], references: [id])
+  code         String
+  language     String
   userId       String   @db.ObjectId
   problem      Problem  @relation(fields: [problemId], references: [id])
   problemId    String   @db.ObjectId
