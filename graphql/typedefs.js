@@ -14,8 +14,8 @@ const typedefs = gql`
     githubLink: String
     instagramLink: String
     portfolioLink: String
-    # registered: [Registered]
-    # userSubmissions: [UserSubmission]
+    # registered: [Registered]  #####
+    # userSubmissions: [UserSubmission] #####
   }
 
   type Problem {
@@ -70,7 +70,7 @@ const typedefs = gql`
     id: ID
     # contest: Contest
     contestId: ID
-    problem: Problem
+    # problem: Problem
     problemId: ID
   }
 

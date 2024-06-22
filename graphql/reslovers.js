@@ -1,18 +1,20 @@
 const prisma = require("../client/prisma");
 const bcrypt = require("bcrypt");
 const { sign_token } = require("../services/jwt/jwt");
-
+require("dotenv").config();
+const ROUNDS = process.env.SALT_ROUNDS || 10;
 const mutaions = {
   registerUser: async (_, { newUser }) => {
     const { firstName, lastName, password, email } = newUser;
     const exist = await prisma.user.findFirst({ where: { email } });
     if (exist) throw new Error("User with email already exist!!");
-    const hashed = await bcrypt.hash(password);
+    const hashed = await bcrypt.hash(password, ROUNDS);
     const user = await prisma.user.create({
       data: { firstName, lastName, password: hashed, email },
     });
+    console.log(user);
     const token = await sign_token({ id: user.id, email, firstName });
-    return token;
+    return { token };
   },
   registerToContest: async (_, { contestId }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
@@ -45,12 +47,15 @@ const mutaions = {
 
 const quary = {
   loginUser: async (_, { email, password }) => {
-    const hashed = await bcrypt.hash(password);
-    const user = prisma.user.findFirst({ where: { email, password: hashed } });
-    if (!user)
-      throw new Error("user with given email and password does't exist!!");
+    const user = await prisma.user.findFirst({
+      where: { email },
+    });
+    if (!user) throw new Error("no user exist with given email!!");
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) throw new Error("Invalid password!!");
     const token = sign_token({ id: user.id, email, firstName: user.firstName });
-    return token;
+    return { token };
   },
   getAllProblems: async (_, {}, { user }) => {
     const problems = await prisma.problem.findMany();
@@ -132,6 +137,15 @@ const quary = {
   },
 };
 
-const typeResovers = {};
+const typeResovers = {
+  Problem: {
+    examples: async (parent, {}, { user }) => {
+      const examples = await prisma.example.findMany({
+        where: { problemId: parent.id },
+      });
+      return examples;
+    },
+  },
+};
 
 module.exports = { mutaions, quary, typeResovers };

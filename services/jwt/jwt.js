@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const SECRET = process.env.SJWT_ECRET;
+const SECRET = process.env.JWT_SECRET;
 
 const jwt_decode = async (token) => {
   if (!token) return null;

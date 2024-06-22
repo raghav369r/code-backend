@@ -18,20 +18,20 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     hello: async () => {
-      try {
-        const res = await prisma.user.create({
-          data: {
-            firstName: "second User",
-            lastName: "lastName",
-            password: "12345",
-            userName: "firstuser",
-            email: "raghav@gmail.com",
-          },
-        });
-        console.log(res);
-      } catch (ex) {
-        console.log(ex);
-      }
+      // try {
+      //   const res = await prisma.user.create({
+      //     data: {
+      //       firstName: "second User",
+      //       lastName: "lastName",
+      //       password: "12345",
+      //       userName: "firstuser",
+      //       email: "raghav@gmail.com",
+      //     },
+      //   });
+      //   console.log(res);
+      // } catch (ex) {
+      //   console.log(ex);
+      // }
       return "Hello world!";
     },
     ...quary,
