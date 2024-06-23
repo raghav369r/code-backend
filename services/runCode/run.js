@@ -52,7 +52,7 @@ const runCode = async (input) => {
   var outputArray = res.stdout.split("\n");
 
   problemExamples.forEach((example, ind) => {
-    if (example.output.trim() === outputArray[ind].trim())
+    if (example.output.trim() === outputArray[ind]?.trim())
       testCasesResult.push(true);
     else testCasesResult.push(false);
   });

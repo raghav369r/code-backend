@@ -164,7 +164,7 @@ const typedefs = gql`
   type Mutation {
     registerUser(newUser: userInput): Token
     registerToContest(contestId: ID!): Contest
-    submitCode(code: submitInput): UserSubmission
+    submitCode(input: submitInput): UserSubmission
     # addExample():ID!
     # addProblem():ID!
     addContest(newContest: contestInput): Contest

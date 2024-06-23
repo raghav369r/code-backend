@@ -30,18 +30,25 @@ const mutaions = {
     });
     return contest;
   },
-  submitCode: async (_, { code }, { user, isAthenticated }) => {
+  submitCode: async (_, { input }, { user, isAthenticated }) => {
     if (!isAthenticated) throw new Error("Missing token or expired Token!!");
-    const isAccepted = true; //runcode and find if any errors if error set error field
-    const errorDetails = null;
+    var isAccepted = false; //runcode and find if any errors if error set error field
+    var errorDetails = "";
+    const res = await runCode(input);
+    errorDetails = res.stderr || res.error;
+    console.log(errorDetails);
+    const errorIndex = res.testCasesResult.indexOf(false);
+    if (errorIndex == -1) isAccepted = true;
+    else errorDetails += ` Error at test case ${errorIndex}`;
     const submit = await prisma.userSubmissions.create({
       data: {
         userId: user.id,
-        problemId: code.problemId,
-        code: code.code,
-        language: code.language,
-        isInContest: code.incontest,
-        errorDetails,
+        problemId: input.problemId,
+        code: input.code,
+        language: input.language,
+        isInContest: input.incontest ? true : false,
+        errorDetails: errorDetails,
+        isAccepted: isAccepted,
       },
     });
     return submit;
@@ -119,17 +126,15 @@ const quary = {
     const contest = await prisma.contest.findFirst({
       where: { id: contestId },
       include: {
-        contestQuestions,
-        _count,
+        contestQuestions: true,
       },
     });
-    console.log(contest);
-    return contest.contestQuestions;
+    return contest;
   },
   getAllregistered: async (_, { contestId }, { user }) => {
     const contest = await prisma.contest.findFirst({
       where: { id: contestId },
-      include: { registered, _count },
+      include: { registered: true },
     });
     console.log(contest);
     return contest.registered;
@@ -137,7 +142,7 @@ const quary = {
   getAllSubmissions: async (_, { userId }) => {
     const user = await prisma.user.findFirst({
       where: { id: userId },
-      include: { _count, userSubmissions },
+      include: { userSubmissions: true },
     });
     console.log(user);
     return user.userSubmissions;
@@ -146,7 +151,7 @@ const quary = {
     if (!isAthenticated) throw new Error("Missing token or expired Token!!");
     const userDet = await prisma.user.findFirst({
       where: { id: user.id },
-      include: { registered },
+      include: { registered: true },
     });
     console.log(userDet);
     return userDet.registered;
@@ -162,7 +167,7 @@ const quary = {
   getContestRankings: async (_, { contestId }, { user }) => {
     const contest = await prisma.contest.findFirst({
       where: { id: contestId },
-      include: { registered, _count },
+      include: { registered: true },
     });
     // run an ranking function to calculate rankings
     console.log(contest);
