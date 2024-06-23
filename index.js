@@ -45,11 +45,11 @@ const resolvers = {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => {
-    const token = req.header.autherisation;
-    const user = jwt_decode(token);
-    const isUthenticated = user ? true : false;
-    return { user, isUthenticated };
+  context: async ({ req }) => {
+    const token = req.headers.authorization;
+    const user = await jwt_decode(token);
+    const isAthenticated = user ? true : false;
+    return { user, isAthenticated };
   },
 });
 

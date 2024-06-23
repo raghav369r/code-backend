@@ -29,7 +29,6 @@ const typedefs = gql`
     createdBy: String
     constraints: String
     expectedComplexity: String
-    userId: ID
     examples: [Example]
     # contestQuestions: [ContestQuestion]
     # userSubmissions: [UserSubmission]
@@ -121,6 +120,7 @@ const typedefs = gql`
     code: String
     language: String
     problemId: String
+    stdin: String
   }
   type Query {
     loginUser(email: String!, password: String!): Token!
@@ -136,11 +136,39 @@ const typedefs = gql`
     getAllOrganisedContests: [Contest]
     getContestRankings: [User]
   }
+  input problemInput {
+    description: String
+    difficulty: String
+    startCode: String
+    topics: String
+    solutionCode: String
+    constraints: String
+    expectedComplexity: String
+    examples: [exampleInput]
+  }
+  input exampleInput {
+    input: String
+    output: String
+    explanation: String
+  }
+  input contestInput {
+    name: String
+    url: String
+    startTime: String
+    endTime: String
+    mediators: String
+    organisation: String
+    contestQuestions: [problemInput]
+  }
 
   type Mutation {
     registerUser(newUser: userInput): Token
     registerToContest(contestId: ID!): Contest
     submitCode(code: submitInput): UserSubmission
+    # addExample():ID!
+    # addProblem():ID!
+    addContest(newContest: contestInput): Contest
+    addProblem(newProblem:problemInput):Problem
   }
 `;
 

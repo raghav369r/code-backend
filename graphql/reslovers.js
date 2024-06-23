@@ -1,7 +1,10 @@
 const prisma = require("../client/prisma");
 const bcrypt = require("bcrypt");
 const { sign_token } = require("../services/jwt/jwt");
+const { addNewProblem } = require("../services/addToDB/problem");
+const { runCode } = require("../services/runCode/run");
 require("dotenv").config();
+
 const ROUNDS = process.env.SALT_ROUNDS || 10;
 const mutaions = {
   registerUser: async (_, { newUser }) => {
@@ -16,8 +19,8 @@ const mutaions = {
     const token = await sign_token({ id: user.id, email, firstName });
     return { token };
   },
-  registerToContest: async (_, { contestId }, { user, isAuthenticated }) => {
-    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+  registerToContest: async (_, { contestId }, { user, isAthenticated }) => {
+    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
     const exist = await prisma.registered.findFirst({
       where: { AND: [{ userId: user.id }, { contestId }] },
     });
@@ -27,8 +30,8 @@ const mutaions = {
     });
     return contest;
   },
-  submitCode: async (_, { code }, { user, isAuthenticated }) => {
-    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+  submitCode: async (_, { code }, { user, isAthenticated }) => {
+    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
     const isAccepted = true; //runcode and find if any errors if error set error field
     const errorDetails = null;
     const submit = await prisma.userSubmissions.create({
@@ -42,6 +45,44 @@ const mutaions = {
       },
     });
     return submit;
+  },
+  addContest: async (_, { newContest }, { user, isAthenticated }) => {
+    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+    const {
+      name,
+      url,
+      startTime,
+      endTime,
+      mediators,
+      organisation,
+      contestQuestions,
+    } = newContest;
+    const pids = await Promise.all(
+      contestQuestions.map(async (ele) => {
+        const { id } = await addNewProblem(ele, user.id);
+        return id;
+      })
+    );
+    const contest = await prisma.contest.create({
+      data: {
+        name,
+        url,
+        startTime: new Date(),
+        endTime: new Date(),
+        owner: user.id,
+        mediators,
+        organisation,
+      },
+    });
+    await prisma.contestQuestions.createMany({
+      data: pids.map((ele) => ({ problemId: ele, contestId: contest.id })),
+    });
+    return contest;
+  },
+  addProblem: async (_, { newProblem }, { user, isAthenticated }) => {
+    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+    const nprob = await addNewProblem(newProblem, user.id);
+    return nprob;
   },
 };
 
@@ -62,18 +103,10 @@ const quary = {
     return problems;
   },
   getProblem: async (_, {}, { user }) => {
-    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
   },
   runCode: async (_, { input }, { user }) => {
-    // if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
-    const { code, language, problemId } = input;
-    const res = {
-      //post to glot and check output
-      stdout: "ok done running",
-      error: "",
-      stderror: "",
-      testCasesResult: [true, false, true],
-    };
+    const res = await runCode(input);
     return res;
   },
   getContestDetails: async (_, { contestId }, { user }) => {
@@ -110,7 +143,7 @@ const quary = {
     return user.userSubmissions;
   },
   getAllParticipatedContests: async (_, __, { user }) => {
-    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
     const userDet = await prisma.user.findFirst({
       where: { id: user.id },
       include: { registered },
@@ -119,7 +152,7 @@ const quary = {
     return userDet.registered;
   },
   getAllOrganisedContests: async (_, __, { user }) => {
-    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
     const organised = await prisma.contest.findMany({
       where: { OR: [{ owner: user.id }, { mediators: { contains: user.id } }] },
     });

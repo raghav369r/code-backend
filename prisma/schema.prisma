@@ -41,7 +41,6 @@ model Problem {
   createdBy          String
   constraints        String
   expectedComplexity String
-  userId             String             @db.ObjectId
   examples           Example[]          @relation("ProblemExamples")
   contestQuestions   ContestQuestions[]
   userSubmissions    UserSubmissions[]
