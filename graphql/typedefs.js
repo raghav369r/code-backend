@@ -69,7 +69,7 @@ const typedefs = gql`
     id: ID
     # contest: Contest
     contestId: ID
-    # problem: Problem
+    problem: Problem
     problemId: ID
   }
 

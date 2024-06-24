@@ -126,7 +126,7 @@ const quary = {
     const contest = await prisma.contest.findFirst({
       where: { id: contestId },
       include: {
-        contestQuestions: true,
+        contestQuestions: { include: { problem: true } },
       },
     });
     return contest;
