@@ -8,16 +8,20 @@ require("dotenv").config();
 const ROUNDS = process.env.SALT_ROUNDS || 10;
 const mutaions = {
   registerUser: async (_, { newUser }) => {
-    const { firstName, lastName, password, email } = newUser;
+    const { userName, password, email } = newUser;
     const exist = await prisma.user.findFirst({ where: { email } });
     if (exist) throw new Error("User with email already exist!!");
     const hashed = await bcrypt.hash(password, ROUNDS);
-    const user = await prisma.user.create({
-      data: { firstName, lastName, password: hashed, email },
+    var user = await prisma.user.create({
+      data: { userName, password: hashed, email },
     });
-    console.log(user);
-    const token = await sign_token({ id: user.id, email, firstName });
-    return { token };
+    // console.log(user);
+    const token = await sign_token({
+      id: user.id,
+      email,
+      name: userName || user.firstName,
+    });
+    return { token, user };
   },
   registerToContest: async (_, { contestId }, { user, isAthenticated }) => {
     if (!isAthenticated) throw new Error("Missing token or expired Token!!");
@@ -94,6 +98,12 @@ const mutaions = {
 };
 
 const quary = {
+  getUser: async (_, __, { user }) => {
+    // console.log(user);
+    if (!user?.id) return null;
+    const nuser = await prisma.user.findFirst({ where: { id: user?.id } });
+    return nuser;
+  },
   loginUser: async (_, { email, password }) => {
     const user = await prisma.user.findFirst({
       where: { email },
@@ -103,7 +113,7 @@ const quary = {
     const match = await bcrypt.compare(password, user.password);
     if (!match) throw new Error("Invalid password!!");
     const token = sign_token({ id: user.id, email, firstName: user.firstName });
-    return { token };
+    return { token, user };
   },
   getAllProblems: async (_, {}, { user }) => {
     const problems = await prisma.problem.findMany();

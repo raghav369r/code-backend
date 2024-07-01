@@ -104,11 +104,13 @@ const typedefs = gql`
   input userInput {
     email: String
     password: String
-    firstName: String
-    lastName: String
+    userName: String
+    # firstName: String
+    # lastName: String
   }
-  type Token {
+  type Auth {
     token: String!
+    user: User
   }
   type runOutput {
     stdout: String
@@ -123,7 +125,8 @@ const typedefs = gql`
     stdin: String
   }
   type Query {
-    loginUser(email: String!, password: String!): Token!
+    getUser: User!
+    loginUser(email: String!, password: String!): Auth!
     getAllProblems: [Problem]
     getProblem: Problem
     runCode(input: codeInput): runOutput
@@ -162,13 +165,13 @@ const typedefs = gql`
   }
 
   type Mutation {
-    registerUser(newUser: userInput): Token
+    registerUser(newUser: userInput): Auth!
     registerToContest(contestId: ID!): Contest
     submitCode(input: submitInput): UserSubmission
     # addExample():ID!
     # addProblem():ID!
     addContest(newContest: contestInput): Contest
-    addProblem(newProblem:problemInput):Problem
+    addProblem(newProblem: problemInput): Problem
   }
 `;
 
