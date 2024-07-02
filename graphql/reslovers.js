@@ -7,6 +7,36 @@ require("dotenv").config();
 
 const ROUNDS = process.env.SALT_ROUNDS || 10;
 const mutaions = {
+  editProfile: async (_, { input }, { user, isAthenticated }) => {
+    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+    const {
+      id,
+      firstName,
+      lastName,
+      userName,
+      profileLink,
+      linkedinLink,
+      githubLink,
+      instagramLink,
+      portfolioLink,
+    } = input;
+    if (id != user.id) throw new Error("Your not Autherised!!");
+    const muser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        firstName,
+        lastName,
+        userName,
+        profileLink,
+        linkedinLink,
+        githubLink,
+        instagramLink,
+        portfolioLink,
+      },
+    });
+    console.log(muser);
+    return muser;
+  },
   registerUser: async (_, { newUser }) => {
     const { userName, password, email } = newUser;
     const exist = await prisma.user.findFirst({ where: { email } });

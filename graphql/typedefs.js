@@ -163,7 +163,17 @@ const typedefs = gql`
     organisation: String
     contestQuestions: [problemInput]
   }
-
+  input minput {
+    id:String
+    firstName: String
+    lastName: String
+    userName: String
+    profileLink: String
+    linkedinLink: String
+    githubLink: String
+    instagramLink: String
+    portfolioLink: String
+  }
   type Mutation {
     registerUser(newUser: userInput): Auth!
     registerToContest(contestId: ID!): Contest
@@ -172,6 +182,7 @@ const typedefs = gql`
     # addProblem():ID!
     addContest(newContest: contestInput): Contest
     addProblem(newProblem: problemInput): Problem
+    editProfile(input: minput): User!
   }
 `;
 
