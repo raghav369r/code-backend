@@ -32,6 +32,7 @@ model User {
 
 model Problem {
   id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  title              String
   description        String
   difficulty         String
   startCode          String

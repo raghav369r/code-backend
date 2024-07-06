@@ -7,8 +7,8 @@ require("dotenv").config();
 
 const ROUNDS = process.env.SALT_ROUNDS || 10;
 const mutaions = {
-  editProfile: async (_, { input }, { user, isAthenticated }) => {
-    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+  editProfile: async (_, { input }, { user, isAuthenticated }) => {
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const {
       id,
       firstName,
@@ -53,8 +53,8 @@ const mutaions = {
     });
     return { token, user };
   },
-  registerToContest: async (_, { contestId }, { user, isAthenticated }) => {
-    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+  registerToContest: async (_, { contestId }, { user, isAuthenticated }) => {
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const exist = await prisma.registered.findFirst({
       where: { AND: [{ userId: user.id }, { contestId }] },
     });
@@ -64,8 +64,8 @@ const mutaions = {
     });
     return contest;
   },
-  submitCode: async (_, { input }, { user, isAthenticated }) => {
-    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+  submitCode: async (_, { input }, { user, isAuthenticated }) => {
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     var isAccepted = false; //runcode and find if any errors if error set error field
     var errorDetails = "";
     const res = await runCode(input);
@@ -87,8 +87,8 @@ const mutaions = {
     });
     return submit;
   },
-  addContest: async (_, { newContest }, { user, isAthenticated }) => {
-    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+  addContest: async (_, { newContest }, { user, isAuthenticated }) => {
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const {
       name,
       url,
@@ -120,14 +120,34 @@ const mutaions = {
     });
     return contest;
   },
-  addProblem: async (_, { newProblem }, { user, isAthenticated }) => {
-    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+  addProblem: async (_, { newProblem }, { user, isAuthenticated }) => {
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const nprob = await addNewProblem(newProblem, user.id);
     return nprob;
   },
 };
 
 const quary = {
+  isContestNameAvailable: async (_, { contestName }, { user,isAuthenticated }) => {
+    console.log(!isAuthenticated)
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+    const pattern = /^[a-zA-Z0-9-]+$/;
+    const res = pattern.test(contestName);
+    if (!res)
+      return {
+        ok: false,
+        error: "can only contain alphanumeric and - chrecters",
+      };
+    const contest = await prisma.contest.findFirst({
+      where: { name: contestName },
+    });
+    if (contest)
+      return {
+        ok: false,
+        error: "name already taken try other name",
+      };
+    return { ok: true, error: "" };
+  },
   getUser: async (_, __, { user }) => {
     // console.log(user);
     if (!user?.id) return null;
@@ -147,10 +167,14 @@ const quary = {
   },
   getAllProblems: async (_, {}, { user }) => {
     const problems = await prisma.problem.findMany();
-    return problems;
+    const currTime = new Date();
+    const filproblems = problems?.filter((prob) => prob.createdAt <= currTime);
+    return filproblems;
   },
-  getProblem: async (_, {}, { user }) => {
-    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+  getProblem: async (_, { id }, { user }) => {
+    // if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+    const problem = await prisma.problem.findFirst({ where: { id } });
+    return problem;
   },
   runCode: async (_, { input }, { user }) => {
     const res = await runCode(input);
@@ -188,7 +212,7 @@ const quary = {
     return user.userSubmissions;
   },
   getAllParticipatedContests: async (_, __, { user }) => {
-    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const userDet = await prisma.user.findFirst({
       where: { id: user.id },
       include: { registered: true },
@@ -197,7 +221,7 @@ const quary = {
     return userDet.registered;
   },
   getAllOrganisedContests: async (_, __, { user }) => {
-    if (!isAthenticated) throw new Error("Missing token or expired Token!!");
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const organised = await prisma.contest.findMany({
       where: { OR: [{ owner: user.id }, { mediators: { contains: user.id } }] },
     });

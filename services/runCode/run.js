@@ -6,6 +6,7 @@ const headers = {
 };
 
 const runCode = async (input) => {
+  console.log(input);
   const { code, language, problemId, stdin } = input;
   var problemExamples = null,
     input = "",
@@ -20,7 +21,7 @@ const runCode = async (input) => {
   }
 
   const data = {
-    stdin: problemId ? input : stdin,
+    stdin: (problemId ? input : stdin) || "",
     files: [
       {
         name: `main.${language}`,
@@ -45,18 +46,20 @@ const runCode = async (input) => {
       stdout: "",
       stderr: "",
       error: "server Error try again later!",
-      testCasesResult: [true, false, true],
+      testCasesResult: [false, false, false],
     };
   }
+  // console.log(res);
   var testCasesResult = [];
   var outputArray = res.stdout.split("\n");
 
-  problemExamples.forEach((example, ind) => {
-    if (example.output.trim() === outputArray[ind]?.trim())
+  problemExamples?.forEach((example, ind) => {
+    // console.log(outputArray[ind]?.trim());
+    if (example.output.trim() === outputArray[ind]?.trim()) {
       testCasesResult.push(true);
-    else testCasesResult.push(false);
+    } else testCasesResult.push(false);
   });
-  return { ...res, testCasesResult };
+  return { ...res, testCasesResult, testcaseOutput: outputArray };
 };
 
 module.exports = { runCode };

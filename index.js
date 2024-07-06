@@ -48,8 +48,10 @@ const server = new ApolloServer({
   context: async ({ req }) => {
     const token = req.headers.authorization;
     const user = await jwt_decode(token);
-    const isAthenticated = user ? true : false;
-    return { user, isAthenticated };
+    console.log(user);
+    const isAuthenticated = user ? true : false;
+    console.log(isAuthenticated);
+    return { user, isAuthenticated };
   },
 });
 

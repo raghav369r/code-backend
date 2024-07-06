@@ -20,6 +20,7 @@ const typedefs = gql`
 
   type Problem {
     id: ID
+    title: String
     description: String
     difficulty: String
     startCode: String
@@ -117,6 +118,7 @@ const typedefs = gql`
     error: String
     stderr: String
     testCasesResult: [Boolean]
+    testcaseOutput: [String]
   }
   input codeInput {
     code: String
@@ -124,11 +126,25 @@ const typedefs = gql`
     problemId: String
     stdin: String
   }
+  type ProblemTable {
+    id: ID
+    title: String
+    description: String
+    difficulty: String
+    topics: String
+    createdAt: String
+    createdBy: String
+  }
+  type contestName {
+    ok: Boolean
+    error: String
+  }
   type Query {
+    isContestNameAvailable(contestName: String!): contestName
     getUser: User!
     loginUser(email: String!, password: String!): Auth!
-    getAllProblems: [Problem]
-    getProblem: Problem
+    getAllProblems: [ProblemTable]
+    getProblem(id: ID!): Problem
     runCode(input: codeInput): runOutput
 
     getContestDetails(contestId: ID!): Contest
@@ -164,7 +180,7 @@ const typedefs = gql`
     contestQuestions: [problemInput]
   }
   input minput {
-    id:String
+    id: String
     firstName: String
     lastName: String
     userName: String
