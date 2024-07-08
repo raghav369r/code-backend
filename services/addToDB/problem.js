@@ -10,6 +10,7 @@ const addNewProblem = async (ele, userId) => {
     constraints,
     expectedComplexity,
     examples,
+    title
   } = ele;
   try {
     const problem = await prisma.problem.create({
@@ -22,6 +23,7 @@ const addNewProblem = async (ele, userId) => {
         constraints,
         expectedComplexity,
         createdBy: userId,
+        title
       },
     });
     await Promise.all(

@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const { sign_token } = require("../services/jwt/jwt");
 const { addNewProblem } = require("../services/addToDB/problem");
 const { runCode } = require("../services/runCode/run");
+const { scheduleEmail } = require("../services/mailService/mail");
 require("dotenv").config();
 
 const ROUNDS = process.env.SALT_ROUNDS || 10;
@@ -62,6 +63,12 @@ const mutaions = {
     const contest = await prisma.registered.create({
       data: { userId: user.id, contestId },
     });
+    const contestInfo = await prisma.contest.findFirst({
+      where: { id: contestId },
+      select: { url: true, startTime: true },
+    });
+    // console.log(user?.email, contestInfo?.startTime, contestInfo?.url);
+    scheduleEmail(user?.email, contestInfo?.startTime, contestInfo?.url);
     return contest;
   },
   submitCode: async (_, { input }, { user, isAuthenticated }) => {
@@ -70,7 +77,7 @@ const mutaions = {
     var errorDetails = "";
     const res = await runCode(input);
     errorDetails = res.stderr || res.error;
-    console.log(errorDetails);
+    // console.log(errorDetails, res);
     const errorIndex = res.testCasesResult.indexOf(false);
     if (errorIndex == -1) isAccepted = true;
     else errorDetails += ` Error at test case ${errorIndex}`;
@@ -83,9 +90,12 @@ const mutaions = {
         isInContest: input.incontest ? true : false,
         errorDetails: errorDetails,
         isAccepted: isAccepted,
+        inputCase: "" + errorIndex,
+        output: errorIndex != -1 ? res?.testcaseOutput?.[errorIndex] : "",
+        expectedOutput: "",
       },
     });
-    return submit;
+    return { ...submit, testCasesResult: res.testCasesResult };
   },
   addContest: async (_, { newContest }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
@@ -108,8 +118,8 @@ const mutaions = {
       data: {
         name,
         url,
-        startTime: new Date(),
-        endTime: new Date(),
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
         owner: user.id,
         mediators,
         organisation,
@@ -128,8 +138,44 @@ const mutaions = {
 };
 
 const quary = {
-  isContestNameAvailable: async (_, { contestName }, { user,isAuthenticated }) => {
-    console.log(!isAuthenticated)
+  isRigistered: async (_, { contestId }, { user, isAuthenticated }) => {
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+    const res = await prisma.registered.findFirst({
+      where: { AND: [{ contestId }, { userId: user?.id }] },
+    });
+    if (res) return true;
+    else return false;
+  },
+  getContests: async (_, __, { user, isAuthenticated }) => {
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+    const currentTime = new Date();
+    const contests = await prisma.contest.findMany();
+    var upComing,
+      registered = [],
+      pastParticipated = [];
+    upComing = contests.filter((ele) => new Date(ele.startTime) > currentTime);
+    pastParticipated = contests.filter(
+      (ele) => new Date(ele.endTime) < currentTime
+    );
+    const res = await prisma.registered.findMany({
+      where: { userId: user.id },
+      include: { contest: true },
+    });
+    res.forEach(({ contest }) => {
+      if (new Date(contest.endTime) > currentTime) registered.push(contest);
+    });
+    return {
+      upComing,
+      registered,
+      pastParticipated,
+    };
+  },
+  isContestNameAvailable: async (
+    _,
+    { contestName },
+    { user, isAuthenticated }
+  ) => {
+    console.log(!isAuthenticated);
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const pattern = /^[a-zA-Z0-9-]+$/;
     const res = pattern.test(contestName);
@@ -186,9 +232,9 @@ const quary = {
     });
     return contest;
   },
-  getContestProblems: async (_, { contestId }, { user }) => {
+  getContestProblems: async (_, { contestURL }, { user }) => {
     const contest = await prisma.contest.findFirst({
-      where: { id: contestId },
+      where: { url: contestURL },
       include: {
         contestQuestions: { include: { problem: true } },
       },
@@ -200,15 +246,13 @@ const quary = {
       where: { id: contestId },
       include: { registered: true },
     });
-    console.log(contest);
     return contest.registered;
   },
   getAllSubmissions: async (_, { userId }) => {
     const user = await prisma.user.findFirst({
       where: { id: userId },
-      include: { userSubmissions: true },
+      include: { userSubmissions: { include: { problem: true } } },
     });
-    console.log(user);
     return user.userSubmissions;
   },
   getAllParticipatedContests: async (_, __, { user }) => {
@@ -217,7 +261,6 @@ const quary = {
       where: { id: user.id },
       include: { registered: true },
     });
-    console.log(userDet);
     return userDet.registered;
   },
   getAllOrganisedContests: async (_, __, { user }) => {
@@ -225,7 +268,6 @@ const quary = {
     const organised = await prisma.contest.findMany({
       where: { OR: [{ owner: user.id }, { mediators: { contains: user.id } }] },
     });
-    console.log(organised);
     return organised;
   },
   getContestRankings: async (_, { contestId }, { user }) => {
@@ -234,7 +276,6 @@ const quary = {
       include: { registered: true },
     });
     // run an ranking function to calculate rankings
-    console.log(contest);
     return contest.registered;
   },
 };

@@ -96,15 +96,19 @@ model Registered {
 }
 
 model UserSubmissions {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  user         User     @relation(fields: [userId], references: [id])
-  code         String
-  language     String
-  userId       String   @db.ObjectId
-  problem      Problem  @relation(fields: [problemId], references: [id])
-  problemId    String   @db.ObjectId
-  isAccepted   Boolean
-  isInContest  Boolean
-  errorDetails String
-  submittedAt  DateTime @default(now())
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  user           User    @relation(fields: [userId], references: [id])
+  code           String
+  language       String
+  userId         String  @db.ObjectId
+  problem        Problem @relation(fields: [problemId], references: [id])
+  problemId      String  @db.ObjectId
+  isAccepted     Boolean
+  isInContest    Boolean
+  errorDetails   String
+  inputCase      String?
+  output         String?
+  expectedOutput String?
+
+  submittedAt DateTime @default(now())
 }

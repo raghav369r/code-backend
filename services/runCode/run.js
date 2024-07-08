@@ -6,7 +6,6 @@ const headers = {
 };
 
 const runCode = async (input) => {
-  console.log(input);
   const { code, language, problemId, stdin } = input;
   var problemExamples = null,
     input = "",

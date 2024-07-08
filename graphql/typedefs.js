@@ -1,6 +1,8 @@
 const { gql } = require("apollo-server-express");
 
 const typedefs = gql`
+  scalar Date
+
   type User {
     id: ID
     firstName: String
@@ -8,7 +10,7 @@ const typedefs = gql`
     userName: String
     email: String
     password: String
-    createdAt: String
+    createdAt: Date
     profileLink: String
     linkedinLink: String
     githubLink: String
@@ -26,7 +28,7 @@ const typedefs = gql`
     startCode: String
     topics: String
     solutionCode: String
-    createdAt: String
+    createdAt: Date
     createdBy: String
     constraints: String
     expectedComplexity: String
@@ -57,8 +59,8 @@ const typedefs = gql`
     id: ID
     name: String
     url: String
-    startTime: String
-    endTime: String
+    startTime: Date
+    endTime: Date
     owner: String
     mediators: String
     organisation: String
@@ -87,14 +89,18 @@ const typedefs = gql`
     id: ID
     # user: User
     userId: ID
-    # problem: Problem
+    problem: Problem
     problemId: ID
     isAccepted: Boolean
     isInContest: Boolean
     errorDetails: String
-    submittedAt: String
+    submittedAt: Date
     code: String
     language: String
+    inputCase: String
+    output: String
+    expectedOutput: String
+    testCasesResult: [Boolean]
   }
   input submitInput {
     code: String
@@ -132,12 +138,17 @@ const typedefs = gql`
     description: String
     difficulty: String
     topics: String
-    createdAt: String
+    createdAt: Date
     createdBy: String
   }
   type contestName {
     ok: Boolean
     error: String
+  }
+  type getContestsOutput {
+    upComing: [Contest]
+    pastParticipated: [Contest]
+    registered: [Contest]
   }
   type Query {
     isContestNameAvailable(contestName: String!): contestName
@@ -146,14 +157,15 @@ const typedefs = gql`
     getAllProblems: [ProblemTable]
     getProblem(id: ID!): Problem
     runCode(input: codeInput): runOutput
-
+    isRigistered(contestId: ID!): Boolean
     getContestDetails(contestId: ID!): Contest
-    getContestProblems(contestId: ID!): Contest
+    getContestProblems(contestURL: String!): Contest
     getAllregistered(contestId: ID!): [User]
     getAllSubmissions(userId: ID!): [UserSubmission]
     getAllParticipatedContests: [Contest]
     getAllOrganisedContests: [Contest]
     getContestRankings: [User]
+    getContests: getContestsOutput
   }
   input problemInput {
     description: String
@@ -164,6 +176,7 @@ const typedefs = gql`
     constraints: String
     expectedComplexity: String
     examples: [exampleInput]
+    title: String
   }
   input exampleInput {
     input: String
@@ -173,8 +186,8 @@ const typedefs = gql`
   input contestInput {
     name: String
     url: String
-    startTime: String
-    endTime: String
+    startTime: Date
+    endTime: Date
     mediators: String
     organisation: String
     contestQuestions: [problemInput]
