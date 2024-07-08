@@ -28,17 +28,25 @@ async function sendEmail(to, subject, text) {
 }
 
 // Function to schedule the email
-function scheduleEmail(email, startTime, message) {
+function scheduleEmail(email, startTime, url) {
   // Calculate the time 2 minutes from now
   const currentTime = new Date(startTime);
-  const scheduledTime = new Date(currentTime.getTime() - 10 * 60 * 1000); // 2 minutes from now
 
+  const scheduledTime = new Date(currentTime.getTime() - 10 * 60 * 1000);
+  sendEmail(
+    email,
+    "You have registered to a contest on chat here",
+    `contest will start at ${startTime} we will remind you again before 10minutes of start of contest,
+     
+    
+    join contest at https://codehere-v1.web.app/contest/${url}`
+  );
   // Schedule the email using node-schedule
   schedule.scheduleJob(scheduledTime, () => {
     sendEmail(
-      "raghav1010reddy@gmail.com",
-      "Scheduled Email",
-      "sent message message"
+      email,
+      `contest your registered will start with in 10 minutes i.e ${startTime}`,
+      `join contest at https://codehere-v1.erb.app/contest/${url}`
     );
   });
 
