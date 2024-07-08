@@ -107,6 +107,7 @@ const typedefs = gql`
     problemId: ID
     inContest: Boolean
     language: String
+    contestId: String
   }
   input userInput {
     email: String
@@ -158,7 +159,7 @@ const typedefs = gql`
     getProblem(id: ID!): Problem
     runCode(input: codeInput): runOutput
     isRigistered(contestId: ID!): Boolean
-    getContestDetails(contestId: ID!): Contest
+    getContestDetails(contestUrl: String!): Contest
     getContestProblems(contestURL: String!): Contest
     getAllregistered(contestId: ID!): [User]
     getAllSubmissions(userId: ID!): [UserSubmission]
@@ -166,6 +167,7 @@ const typedefs = gql`
     getAllOrganisedContests: [Contest]
     getContestRankings: [User]
     getContests: getContestsOutput
+    getProblemSubmissions(problemId: ID!): [UserSubmission]
   }
   input problemInput {
     description: String
@@ -212,6 +214,7 @@ const typedefs = gql`
     addContest(newContest: contestInput): Contest
     addProblem(newProblem: problemInput): Problem
     editProfile(input: minput): User!
+    blockUser(contestId: ID!): Boolean
   }
 `;
 

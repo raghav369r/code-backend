@@ -14,20 +14,21 @@ datasource db {
 }
 
 model User {
-  id              String            @id @default(auto()) @map("_id") @db.ObjectId
-  firstName       String?
-  lastName        String?
-  userName        String?
-  email           String
-  password        String
-  createdAt       DateTime          @default(now())
-  profileLink     String?
-  linkedinLink    String?
-  githubLink      String?
-  instagramLink   String?
-  portfolioLink   String?
-  registered      Registered[]
-  userSubmissions UserSubmissions[]
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  firstName          String?
+  lastName           String?
+  userName           String?
+  email              String
+  password           String
+  createdAt          DateTime             @default(now())
+  profileLink        String?
+  linkedinLink       String?
+  githubLink         String?
+  instagramLink      String?
+  portfolioLink      String?
+  registered         Registered[]
+  userSubmissions    UserSubmissions[]
+  ContestPerformance ContestPerformance[]
 }
 
 model Problem {
@@ -58,24 +59,25 @@ model TestCase {
 
 model Example {
   id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  input       String
+  input       String?
   output      String
-  explanation String
+  explanation String?
   problem     Problem @relation("ProblemExamples", fields: [problemId], references: [id])
   problemId   String  @db.ObjectId
 }
 
 model Contest {
-  id               String             @id @default(auto()) @map("_id") @db.ObjectId
-  name             String
-  url              String
-  startTime        DateTime
-  endTime          DateTime
-  owner            String
-  mediators        String
-  organisation     String
-  contestQuestions ContestQuestions[]
-  registered       Registered[]
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  url                String               @unique
+  startTime          DateTime
+  endTime            DateTime
+  owner              String
+  mediators          String
+  organisation       String
+  contestQuestions   ContestQuestions[]
+  registered         Registered[]
+  ContestPerformance ContestPerformance[]
 }
 
 model ContestQuestions {
@@ -110,5 +112,27 @@ model UserSubmissions {
   output         String?
   expectedOutput String?
 
+  submittedAt DateTime @default(now())
+}
+
+model ContestPerformance {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String    @db.ObjectId
+  contestId     String    @db.ObjectId
+  lastSubmitted DateTime?
+  isBlocked     Boolean   @default(false)
+  isJoined      Boolean   @default(false)
+  score         Int       @default(0)
+
+  User    User    @relation(fields: [userId], references: [id])
+  Contest Contest @relation(fields: [contestId], references: [id])
+}
+
+model ContestSubmissions {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  contestId   String   @db.ObjectId
+  problemId   String   @db.ObjectId
+  isAccepted  Boolean
   submittedAt DateTime @default(now())
 }

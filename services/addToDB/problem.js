@@ -1,6 +1,6 @@
 const prisma = require("../../client/prisma");
 
-const addNewProblem = async (ele, userId) => {
+const addNewProblem = async (ele, userId, endTime) => {
   const {
     description,
     difficulty,
@@ -10,7 +10,7 @@ const addNewProblem = async (ele, userId) => {
     constraints,
     expectedComplexity,
     examples,
-    title
+    title,
   } = ele;
   try {
     const problem = await prisma.problem.create({
@@ -23,7 +23,8 @@ const addNewProblem = async (ele, userId) => {
         constraints,
         expectedComplexity,
         createdBy: userId,
-        title
+        title,
+        createdAt: new Date(endTime).toISOString(),
       },
     });
     await Promise.all(
