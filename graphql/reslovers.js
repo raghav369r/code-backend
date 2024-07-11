@@ -89,7 +89,6 @@ const mutaions = {
     var errorDetails = "";
     const res = await runCode(input);
     errorDetails = res.stderr || res.error;
-    // console.log(errorDetails, res);
     const errorIndex = res.testCasesResult.indexOf(false);
     if (errorIndex == -1) isAccepted = true;
     else errorDetails += ` Error at test case ${errorIndex}`;
@@ -117,6 +116,7 @@ const mutaions = {
         },
       });
     }
+    
     return { ...submit, testCasesResult: res.testCasesResult };
   },
   addContest: async (_, { newContest }, { user, isAuthenticated }) => {
@@ -231,10 +231,11 @@ const quary = {
       };
     return { ok: true, error: "" };
   },
-  getUser: async (_, __, { user }) => {
-    // console.log(user);
-    if (!user?.id) return null;
-    const nuser = await prisma.user.findFirst({ where: { id: user?.id } });
+  getUser: async (_, { userId }, { user }) => {
+    if (!userId && !user?.id) return null;
+    const nuser = await prisma.user.findFirst({
+      where: { id: userId || user?.id },
+    });
     return nuser;
   },
   loginUser: async (_, { email, password }) => {
@@ -255,9 +256,16 @@ const quary = {
     );
     return filproblems;
   },
-  getProblem: async (_, { id }, { user }) => {
-    // if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+  getProblem: async (_, { id }, { user, isAuthenticated }) => {
     const problem = await prisma.problem.findFirst({ where: { id } });
+    if (new Date(problem.createdAt) < new Date()) return problem;
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+    const isBlocked = await prisma.contestPerformance.findFirst({
+      where: {
+        AND: [{ isBlocked: true }, { userId: user.id }],
+      },
+    });
+    if (isBlocked?.isBlocked) throw new Error("your kicked from the contest!!");
     return problem;
   },
   runCode: async (_, { input }, { user }) => {
@@ -293,12 +301,14 @@ const quary = {
     }
     return contest;
   },
-  getAllregistered: async (_, { contestId }, { user }) => {
-    const contest = await prisma.contest.findFirst({
-      where: { id: contestId },
-      include: { registered: true },
+  getAllregistered: async (_, { contestUrl }, { user }) => {
+    const con = await prisma.contest.findFirst({ where: { url: contestUrl } });
+    const contest = await prisma.registered.findMany({
+      where: { contestId: con.id },
+      include: { user: true },
     });
-    return contest.registered;
+    const res = contest.map((ele) => ele.user);
+    return res;
   },
   getAllSubmissions: async (_, { userId }) => {
     const user = await prisma.user.findFirst({
@@ -312,10 +322,14 @@ const quary = {
     });
     return user.userSubmissions;
   },
-  getAllParticipatedContests: async (_, __, { user, isAuthenticated }) => {
-    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+  getAllParticipatedContests: async (
+    _,
+    { userId },
+    { user, isAuthenticated }
+  ) => {
+    // if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const userDet = await prisma.user.findFirst({
-      where: { id: user.id },
+      where: { id: userId },
       include: { registered: { include: { contest: true } } },
     });
     let pastContests = [];
@@ -332,13 +346,13 @@ const quary = {
     });
     return organised;
   },
-  getContestRankings: async (_, { contestId }, { user }) => {
+  getContestRankings: async (_, { contestUrl }, { user }) => {
     const contest = await prisma.contest.findFirst({
-      where: { id: contestId },
+      where: { url: contestUrl },
       include: { registered: true },
     });
     // run an ranking function to calculate rankings
-    return contest.registered;
+    return contest.registered || [];
   },
 };
 

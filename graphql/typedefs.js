@@ -153,7 +153,7 @@ const typedefs = gql`
   }
   type Query {
     isContestNameAvailable(contestName: String!): contestName
-    getUser: User!
+    getUser(userId: ID): User!
     loginUser(email: String!, password: String!): Auth!
     getAllProblems: [ProblemTable]
     getProblem(id: ID!): Problem
@@ -161,11 +161,11 @@ const typedefs = gql`
     isRigistered(contestId: ID!): Boolean
     getContestDetails(contestUrl: String!): Contest
     getContestProblems(contestURL: String!): Contest
-    getAllregistered(contestId: ID!): [User]
+    getAllregistered(contestUrl: String!): [User]
     getAllSubmissions(userId: ID!): [UserSubmission]
-    getAllParticipatedContests: [Contest]
+    getAllParticipatedContests(userId: ID!): [Contest]
     getAllOrganisedContests: [Contest]
-    getContestRankings: [User]
+    getContestRankings(contestUrl: String!): [User]
     getContests: getContestsOutput
     getProblemSubmissions(problemId: ID!): [UserSubmission]
   }
