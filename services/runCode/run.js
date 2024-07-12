@@ -58,7 +58,15 @@ const runCode = async (input) => {
       testCasesResult.push(true);
     } else testCasesResult.push(false);
   });
-  return { ...res, testCasesResult, testcaseOutput: outputArray };
+  var expectedOutput = "";
+  const errInd = testCasesResult.findIndex(false);
+  if (errInd != -1) expectedOutput = problemExamples[errInd].output.trim();
+  return {
+    ...res,
+    testCasesResult,
+    testcaseOutput: outputArray,
+    expectedOutput,
+  };
 };
 
 module.exports = { runCode };

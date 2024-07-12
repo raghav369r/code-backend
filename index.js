@@ -2,7 +2,6 @@ const express = require("express");
 const { ApolloServer, gql } = require("apollo-server-express");
 const cors = require("cors");
 require("dotenv").config();
-const prisma = require("./client/prisma");
 const { jwt_decode } = require("./services/jwt/jwt");
 const { typedefs } = require("./graphql/typedefs");
 const { mutaions, quary, typeResovers } = require("./graphql/reslovers");
@@ -17,23 +16,7 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    hello: async () => {
-      // try {
-      //   const res = await prisma.user.create({
-      //     data: {
-      //       firstName: "second User",
-      //       lastName: "lastName",
-      //       password: "12345",
-      //       userName: "firstuser",
-      //       email: "raghav@gmail.com",
-      //     },
-      //   });
-      //   console.log(res);
-      // } catch (ex) {
-      //   console.log(ex);
-      // }
-      return "Hello world!";
-    },
+    hello: async () => "Hello world!",
     ...quary,
   },
   Mutation: {
@@ -47,7 +30,12 @@ const server = new ApolloServer({
   resolvers,
   context: async ({ req }) => {
     const token = req.headers.authorization;
-    const user = await jwt_decode(token);
+    var user = null;
+    try {
+      user = await jwt_decode(token);
+    } catch (ex) {
+      user = null;
+    }
     const isAuthenticated = user ? true : false;
     return { user, isAuthenticated };
   },
@@ -55,6 +43,9 @@ const server = new ApolloServer({
 
 const app = express();
 app.use(cors());
+app.get("/", (req, res) => {
+  res.status(200).send("hello, surprised to see you here!!");
+});
 server.start().then(() => {
   server.applyMiddleware({ app, path: "/graphql", cors: false });
 

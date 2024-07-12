@@ -36,7 +36,9 @@ function scheduleEmail(email, startTime, url) {
   sendEmail(
     email,
     "You have registered to a contest on chat here",
-    `contest will start at ${startTime} we will remind you again before 10minutes of start of contest,
+    `contest will start at ${new Date(
+      startTime
+    ).toISOString()} we will remind you again before 10minutes of start of contest,
      
     
     join contest at https://codehere-v1.web.app/contest/${url}`
@@ -45,16 +47,13 @@ function scheduleEmail(email, startTime, url) {
   schedule.scheduleJob(scheduledTime, () => {
     sendEmail(
       email,
-      `contest your registered will start with in 10 minutes i.e ${startTime}`,
+      `contest your registered will start with in 10 minutes i.e ${new Date(
+        startTime
+      ).toISOString()}`,
       `join contest at https://codehere-v1.erb.app/contest/${url}`
     );
   });
 
   console.log(`Email scheduled for: ${scheduledTime} to ${email}`);
 }
-
-// Example usage
-const email = "recipient@example.com";
-const message = "This is a scheduled email message.";
-
 module.exports = { scheduleEmail };

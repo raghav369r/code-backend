@@ -9,7 +9,6 @@ const typedefs = gql`
     lastName: String
     userName: String
     email: String
-    password: String
     createdAt: Date
     profileLink: String
     linkedinLink: String
@@ -43,7 +42,6 @@ const typedefs = gql`
     problemId: ID
     input: String
     output: String
-    # problem: Problem
   }
 
   type Example {
@@ -51,7 +49,6 @@ const typedefs = gql`
     input: String
     output: String
     explanation: String
-    # problem: Problem
     problemId: ID
   }
 
@@ -67,27 +64,34 @@ const typedefs = gql`
     contestQuestions: [ContestQuestion]
     # registered: [Registered]
   }
-
+  type ContestDetails {
+    id: ID
+    name: String
+    url: String
+    startTime: Date
+    endTime: Date
+    owner: String
+    mediators: String
+    organisation: String
+  }
   type ContestQuestion {
     id: ID
-    # contest: Contest
     contestId: ID
-    problem: Problem
     problemId: ID
+    problem: Problem
+    # contest: Contest
   }
 
   type Registered {
     id: ID
     user: User
     userId: ID
-    contest: Contest
     contestId: ID
     registeredAt: String
   }
 
   type UserSubmission {
     id: ID
-    # user: User
     userId: ID
     problem: Problem
     problemId: ID
@@ -104,9 +108,8 @@ const typedefs = gql`
   }
   input submitInput {
     code: String
-    problemId: ID
-    inContest: Boolean
-    language: String
+    problemId: ID!
+    language: String!
     contestId: String
   }
   input userInput {
@@ -151,6 +154,17 @@ const typedefs = gql`
     pastParticipated: [Contest]
     registered: [Contest]
   }
+  type ContestPerformance {
+    id: String
+    userId: String
+    contestId: String
+    lastSubmitted: Date
+    isJoined: Boolean
+    isBlocked: Boolean
+    score: Int
+    User: User
+  }
+
   type Query {
     isContestNameAvailable(contestName: String!): contestName
     getUser(userId: ID): User!
@@ -159,13 +173,13 @@ const typedefs = gql`
     getProblem(id: ID!): Problem
     runCode(input: codeInput): runOutput
     isRigistered(contestId: ID!): Boolean
-    getContestDetails(contestUrl: String!): Contest
+    getContestDetails(contestUrl: String!): ContestDetails
     getContestProblems(contestURL: String!): Contest
     getAllregistered(contestUrl: String!): [User]
     getAllSubmissions(userId: ID!): [UserSubmission]
     getAllParticipatedContests(userId: ID!): [Contest]
     getAllOrganisedContests: [Contest]
-    getContestRankings(contestUrl: String!): [User]
+    getContestRankings(contestUrl: String!): [ContestPerformance]
     getContests: getContestsOutput
     getProblemSubmissions(problemId: ID!): [UserSubmission]
   }
@@ -211,7 +225,7 @@ const typedefs = gql`
     submitCode(input: submitInput): UserSubmission
     # addExample():ID!
     # addProblem():ID!
-    addContest(newContest: contestInput): Contest
+    addContest(newContest: contestInput): ContestDetails
     addProblem(newProblem: problemInput): Problem
     editProfile(input: minput): User!
     blockUser(contestId: ID!): Boolean

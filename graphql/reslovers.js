@@ -18,6 +18,7 @@ const mutaions = {
     });
     return true;
   },
+
   editProfile: async (_, { input }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const {
@@ -47,6 +48,7 @@ const mutaions = {
     });
     return muser;
   },
+
   registerUser: async (_, { newUser }) => {
     const { userName, password, email } = newUser;
     const exist = await prisma.user.findFirst({ where: { email } });
@@ -55,7 +57,6 @@ const mutaions = {
     var user = await prisma.user.create({
       data: { userName, password: hashed, email },
     });
-    // console.log(user);
     const token = await sign_token({
       id: user.id,
       email,
@@ -63,6 +64,7 @@ const mutaions = {
     });
     return { token, user };
   },
+
   registerToContest: async (_, { contestId }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const exist = await prisma.registered.findFirst({
@@ -76,16 +78,18 @@ const mutaions = {
       where: { id: contestId },
       select: { url: true, startTime: true },
     });
-    // console.log(user?.email, contestInfo?.startTime, contestInfo?.url);
     scheduleEmail(user?.email, contestInfo?.startTime, contestInfo?.url);
     await prisma.contestPerformance.create({
       data: { contestId, userId: user.id },
     });
     return contest;
   },
+
+  // Not checked if the user is blocked from contest incase of contest submission
   submitCode: async (_, { input }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
-    var isAccepted = false; //runcode and find if any errors if error set error field
+    const currentTime = new Date();
+    var isAccepted = false;
     var errorDetails = "";
     const res = await runCode(input);
     errorDetails = res.stderr || res.error;
@@ -103,10 +107,13 @@ const mutaions = {
         isAccepted: isAccepted,
         inputCase: "" + errorIndex,
         output: errorIndex != -1 ? res?.testcaseOutput?.[errorIndex] : "",
-        expectedOutput: "",
+        expectedOutput: res.expectedOutput,
       },
     });
-    if (input.inContest) {
+    const problemInfo = await prisma.problem.findFirst({
+      where: { id: input.problemId },
+    });
+    if (new Date(problemInfo.createdAt) < currentTime) {
       const res = await prisma.contestSubmissions.create({
         data: {
           contestId: input.contestId,
@@ -115,8 +122,24 @@ const mutaions = {
           isAccepted,
         },
       });
+      const already = await prisma.contestSubmissions.findFirst({
+        where: {
+          AND: [
+            { contestId: input.contestId },
+            { userId: user.id },
+            { problemId: input.problemId },
+            { isAccepted: true },
+          ],
+        },
+      });
+      if (!already) {
+        await prisma.contestPerformance.update({
+          data: { lastSubmitted: currentTime, score: { increment: 1 } },
+          where: { AND: [{ contestId: input.contestId, userId: user.id }] },
+        });
+      }
     }
-    
+
     return { ...submit, testCasesResult: res.testCasesResult };
   },
   addContest: async (_, { newContest }, { user, isAuthenticated }) => {
@@ -176,6 +199,7 @@ const quary = {
     });
     return res;
   },
+
   isRigistered: async (_, { contestId }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const res = await prisma.registered.findFirst({
@@ -184,6 +208,7 @@ const quary = {
     if (res) return true;
     else return false;
   },
+
   getContests: async (_, __, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const currentTime = new Date();
@@ -208,6 +233,7 @@ const quary = {
       pastParticipated,
     };
   },
+
   isContestNameAvailable: async (
     _,
     { contestName },
@@ -231,16 +257,18 @@ const quary = {
       };
     return { ok: true, error: "" };
   },
-  getUser: async (_, { userId }, { user }) => {
-    if (!userId && !user?.id) return null;
+
+  getUser: async (_, { userId }, { user, isAuthenticated }) => {
+    if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const nuser = await prisma.user.findFirst({
       where: { id: userId || user?.id },
     });
     return nuser;
   },
+
   loginUser: async (_, { email, password }) => {
     const user = await prisma.user.findFirst({
-      where: { email },
+      where: { email: { equals: email, mode: "insensitive" } },
     });
     if (!user) throw new Error("no user exist with given email!!");
 
@@ -249,13 +277,20 @@ const quary = {
     const token = sign_token({ id: user.id, email, firstName: user.firstName });
     return { token, user };
   },
+
   getAllProblems: async (_, {}, { user }) => {
-    const problems = await prisma.problem.findMany();
-    const filproblems = problems?.filter(
-      (prob) => new Date(prob.createdAt) <= new Date()
-    );
-    return filproblems;
+    const currentTime = new Date();
+    const problems = await prisma.problem.findMany({
+      where: { createdAt: { lte: currentTime } },
+    });
+    return problems;
+    // const problems = await prisma.problem.findMany();
+    // const filproblems = problems?.filter(
+    //   (prob) => new Date(prob.createdAt) <= new Date()
+    // );
+    // return filproblems;
   },
+
   getProblem: async (_, { id }, { user, isAuthenticated }) => {
     const problem = await prisma.problem.findFirst({ where: { id } });
     if (new Date(problem.createdAt) < new Date()) return problem;
@@ -268,16 +303,19 @@ const quary = {
     if (isBlocked?.isBlocked) throw new Error("your kicked from the contest!!");
     return problem;
   },
+
   runCode: async (_, { input }, { user }) => {
     const res = await runCode(input);
     return res;
   },
+
   getContestDetails: async (_, { contestUrl }, { user }) => {
     const contest = await prisma.contest.findFirst({
       where: { url: contestUrl },
     });
     return contest;
   },
+
   getContestProblems: async (_, { contestURL }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
 
@@ -292,6 +330,7 @@ const quary = {
       const cperformence = await prisma.contestPerformance.findFirst({
         where: { AND: [{ userId: user.id }, { contestId: contest.id }] },
       });
+      if (!cperformence) throw new Error("You not registerd to contest!!");
       if (cperformence?.isBlocked) throw new Error("blocked");
       if (cperformence?.isJoined) throw new Error("already isJoined");
       await prisma.contestPerformance.updateMany({
@@ -301,6 +340,7 @@ const quary = {
     }
     return contest;
   },
+
   getAllregistered: async (_, { contestUrl }, { user }) => {
     const con = await prisma.contest.findFirst({ where: { url: contestUrl } });
     const contest = await prisma.registered.findMany({
@@ -310,6 +350,7 @@ const quary = {
     const res = contest.map((ele) => ele.user);
     return res;
   },
+
   getAllSubmissions: async (_, { userId }) => {
     const user = await prisma.user.findFirst({
       where: { id: userId },
@@ -322,6 +363,7 @@ const quary = {
     });
     return user.userSubmissions;
   },
+
   getAllParticipatedContests: async (
     _,
     { userId },
@@ -338,6 +380,7 @@ const quary = {
     });
     return pastContests;
   },
+
   getAllOrganisedContests: async (_, __, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const organised = await prisma.contest.findMany({
@@ -346,13 +389,17 @@ const quary = {
     });
     return organised;
   },
+
   getContestRankings: async (_, { contestUrl }, { user }) => {
     const contest = await prisma.contest.findFirst({
       where: { url: contestUrl },
-      include: { registered: true },
     });
-    // run an ranking function to calculate rankings
-    return contest.registered || [];
+    const rankings = await prisma.contestPerformance.findMany({
+      where: { contestId: contest.id },
+      orderBy: [{ score: "desc" }, { lastSubmitted: "asc" }],
+      include: { User: true },
+    });
+    return rankings;
   },
 };
 
