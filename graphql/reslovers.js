@@ -96,13 +96,21 @@ const mutaions = {
     const errorIndex = res.testCasesResult.indexOf(false);
     if (errorIndex == -1) isAccepted = true;
     else errorDetails += ` Error at test case ${errorIndex}`;
+
+    const problemInfo = await prisma.problem.findFirst({
+      where: { id: input.problemId },
+    });
+    const { id } = await prisma.contest.findFirst({
+      where: { url: input.contestUrl },
+    });
+
     const submit = await prisma.userSubmissions.create({
       data: {
         userId: user.id,
         problemId: input.problemId,
         code: input.code,
         language: input.language,
-        isInContest: input.inContest ? true : false,
+        isInContest: new Date(problemInfo.createdAt) > currentTime,
         errorDetails: errorDetails,
         isAccepted: isAccepted,
         inputCase: "" + errorIndex,
@@ -110,32 +118,29 @@ const mutaions = {
         expectedOutput: res.expectedOutput,
       },
     });
-    const problemInfo = await prisma.problem.findFirst({
-      where: { id: input.problemId },
-    });
-    if (new Date(problemInfo.createdAt) < currentTime) {
-      const res = await prisma.contestSubmissions.create({
-        data: {
-          contestId: input.contestId,
-          userId: user.id,
-          problemId: input.problemId,
-          isAccepted,
-        },
-      });
+    if (new Date(problemInfo.createdAt) > currentTime) {
       const already = await prisma.contestSubmissions.findFirst({
         where: {
           AND: [
-            { contestId: input.contestId },
+            { contestId: id },
             { userId: user.id },
             { problemId: input.problemId },
             { isAccepted: true },
           ],
         },
       });
-      if (!already) {
-        await prisma.contestPerformance.update({
+      const res = await prisma.contestSubmissions.create({
+        data: {
+          contestId: id,
+          userId: user.id,
+          problemId: input.problemId,
+          isAccepted,
+        },
+      });
+      if (!already && isAccepted) {
+        const added = await prisma.contestPerformance.updateMany({
           data: { lastSubmitted: currentTime, score: { increment: 1 } },
-          where: { AND: [{ contestId: input.contestId, userId: user.id }] },
+          where: { AND: [{ contestId: id, userId: user.id }] },
         });
       }
     }
@@ -300,7 +305,7 @@ const quary = {
         AND: [{ isBlocked: true }, { userId: user.id }],
       },
     });
-    if (isBlocked?.isBlocked) throw new Error("your kicked from the contest!!");
+    // if (isBlocked?.isBlocked) throw new Error("your kicked from the contest!!");
     return problem;
   },
 
@@ -313,6 +318,7 @@ const quary = {
     const contest = await prisma.contest.findFirst({
       where: { url: contestUrl },
     });
+    if (!contest) throw new Error("No contest exist with this page!!");
     return contest;
   },
 
@@ -325,19 +331,19 @@ const quary = {
         contestQuestions: { include: { problem: true } },
       },
     });
-    const currTime = new Date();
-    if (currTime > new Date(contest.startTime) && currTime < contest.endTime) {
-      const cperformence = await prisma.contestPerformance.findFirst({
-        where: { AND: [{ userId: user.id }, { contestId: contest.id }] },
-      });
-      if (!cperformence) throw new Error("You not registerd to contest!!");
-      if (cperformence?.isBlocked) throw new Error("blocked");
-      if (cperformence?.isJoined) throw new Error("already isJoined");
-      await prisma.contestPerformance.updateMany({
-        where: { AND: [{ userId: user.id }, { contestId: contest.id }] },
-        data: { isJoined: true },
-      });
-    }
+    // const currTime = new Date();
+    // if (currTime > new Date(contest.startTime) && currTime < contest.endTime) {
+    //   const cperformence = await prisma.contestPerformance.findFirst({
+    //     where: { AND: [{ userId: user.id }, { contestId: contest.id }] },
+    //   });
+    //   if (!cperformence) throw new Error("You not registerd to contest!!");
+    //   if (cperformence?.isBlocked) throw new Error("blocked");
+    //   if (cperformence?.isJoined) throw new Error("already isJoined");
+    //   await prisma.contestPerformance.updateMany({
+    //     where: { AND: [{ userId: user.id }, { contestId: contest.id }] },
+    //     data: { isJoined: true },
+    //   });
+    // }
     return contest;
   },
 
@@ -410,6 +416,18 @@ const typeResovers = {
         where: { problemId: parent.id },
       });
       return examples;
+    },
+  },
+  ProblemTable: {
+    status: async (parent, {}, { user, isAuthenticated }) => {
+      if (!isAuthenticated) return "none";
+      const submitted = await prisma.userSubmissions.findMany({
+        where: { userId: user.id, problemId: parent.id },
+      });
+      if (submitted?.length == 0) return "none";
+      const accepted = submitted.findIndex((ele) => ele.isAccepted == true);
+      if (accepted != -1) return "done";
+      else return "try";
     },
   },
 };

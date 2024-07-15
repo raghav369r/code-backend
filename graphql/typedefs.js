@@ -110,7 +110,7 @@ const typedefs = gql`
     code: String
     problemId: ID!
     language: String!
-    contestId: String
+    contestUrl: String
   }
   input userInput {
     email: String
@@ -144,6 +144,7 @@ const typedefs = gql`
     topics: String
     createdAt: Date
     createdBy: String
+    status: String
   }
   type contestName {
     ok: Boolean

@@ -7,13 +7,13 @@ async function sendEmail(to, subject, text) {
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: process.env.SMTP_MAIL, // Your email
-      pass: process.env.SMPT_PASSWORD, // Your app-specific password
+      user: process.env.SMTP_MAIL, 
+      pass: process.env.SMPT_PASSWORD, 
     },
   });
 
   let mailOptions = {
-    from: process.env.SMTP_MAIL, // Your email
+    from: process.env.SMTP_MAIL, 
     to,
     subject,
     text,
@@ -27,9 +27,8 @@ async function sendEmail(to, subject, text) {
   }
 }
 
-// Function to schedule the email
+
 function scheduleEmail(email, startTime, url) {
-  // Calculate the time 2 minutes from now
   const currentTime = new Date(startTime);
 
   const scheduledTime = new Date(currentTime.getTime() - 10 * 60 * 1000);
@@ -50,7 +49,7 @@ function scheduleEmail(email, startTime, url) {
       `contest your registered will start with in 10 minutes i.e ${new Date(
         startTime
       ).toISOString()}`,
-      `join contest at https://codehere-v1.erb.app/contest/${url}`
+      `join contest at https://codehere-v1.web.app/contest/${url}`
     );
   });
 

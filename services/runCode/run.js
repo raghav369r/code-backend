@@ -59,7 +59,7 @@ const runCode = async (input) => {
     } else testCasesResult.push(false);
   });
   var expectedOutput = "";
-  const errInd = testCasesResult.findIndex(false);
+  const errInd = testCasesResult.indexOf(false);
   if (errInd != -1) expectedOutput = problemExamples[errInd].output.trim();
   return {
     ...res,
