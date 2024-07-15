@@ -378,11 +378,17 @@ const quary = {
     // if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const userDet = await prisma.user.findFirst({
       where: { id: userId },
-      include: { registered: { include: { contest: true } } },
+      include: {
+        registered: {
+          include: { contest: true },
+          orderBy: [{ registeredAt: "desc" }],
+        },
+      },
     });
     let pastContests = [];
     userDet?.registered?.forEach(({ contest }) => {
-      if (new Date(contest.endTime) >= new Date()) pastContests.push(contest);
+      // console.log(contest);
+      if (new Date(contest.endTime) <= new Date()) pastContests.push(contest);
     });
     return pastContests;
   },
