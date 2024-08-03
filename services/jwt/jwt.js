@@ -8,7 +8,7 @@ const jwt_decode = async (token) => {
   try {
     user = await jwt.verify(token, SECRET);
   } catch (ex) {
-    console.log("error decoding token ");
+    // console.log("error decoding token ");
     user = null;
   }
   return user;

@@ -165,24 +165,27 @@ const typedefs = gql`
     score: Int
     User: User
   }
-
+  input Pagination {
+    page: Int
+    limit: Int
+  }
   type Query {
     isContestNameAvailable(contestName: String!): contestName
     getUser(userId: ID): User!
     loginUser(email: String!, password: String!): Auth!
-    getAllProblems: [ProblemTable]
+    getAllProblems(Pagination: Pagination): [ProblemTable]
     getProblem(id: ID!): Problem
     runCode(input: codeInput): runOutput
     isRigistered(contestId: ID!): Boolean
     getContestDetails(contestUrl: String!): ContestDetails
     getContestProblems(contestURL: String!): Contest
-    getAllregistered(contestUrl: String!): [User]
-    getAllSubmissions(userId: ID!): [UserSubmission]
-    getAllParticipatedContests(userId: ID!): [Contest]
-    getAllOrganisedContests: [Contest]
-    getContestRankings(contestUrl: String!): [ContestPerformance]
+    getAllregistered(contestUrl: String!, Pagination: Pagination): [User]
+    getAllSubmissions(userId: ID!, Pagination: Pagination): [UserSubmission]
+    getAllParticipatedContests(userId: ID!, Pagination: Pagination): [Contest]
+    getAllOrganisedContests(Pagination:Pagination): [Contest]
+    getContestRankings(contestUrl: String!,Pagination:Pagination): [ContestPerformance]
     getContests: getContestsOutput
-    getProblemSubmissions(problemId: ID!): [UserSubmission]
+    getProblemSubmissions(problemId: ID!,Pagination:Pagination): [UserSubmission]
   }
   input problemInput {
     description: String

@@ -194,13 +194,18 @@ const mutaions = {
 const quary = {
   getProblemSubmissions: async (
     _,
-    { problemId },
+    { problemId, Pagination },
     { user, isAuthenticated }
   ) => {
+    const { page, limit } = Pagination || {};
+    if (page == -1) throw new Error("Invalid Page Number!!");
+    const offSet = ((page || 1) - 1) * (limit || 10);
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const res = await prisma.userSubmissions.findMany({
       where: { AND: [{ problemId }, { userId: user.id }] },
       orderBy: [{ submittedAt: "desc" }],
+      skip: offSet,
+      take: limit || 10,
     });
     return res;
   },
@@ -283,10 +288,16 @@ const quary = {
     return { token, user };
   },
 
-  getAllProblems: async (_, {}, { user }) => {
+  getAllProblems: async (_, { Pagination }, { user }) => {
+    const { page, limit } = Pagination || {};
+    if (page == -1) throw new Error("Invalid Page Number!!");
+    const offSet = ((page || 1) - 1) * (limit || 10);
     const currentTime = new Date();
     const problems = await prisma.problem.findMany({
       where: { createdAt: { lte: currentTime } },
+      orderBy: { createdAt: "desc" },
+      skip: offSet,
+      take: limit || 10,
     });
     return problems;
     // const problems = await prisma.problem.findMany();
@@ -347,23 +358,34 @@ const quary = {
     return contest;
   },
 
-  getAllregistered: async (_, { contestUrl }, { user }) => {
+  getAllregistered: async (_, { contestUrl, Pagination }, { user }) => {
+    const { page, limit } = Pagination || {};
+    if (page == -1) throw new Error("Invalid Page Number!!");
+    const offSet = ((page || 1) - 1) * (limit || 10);
     const con = await prisma.contest.findFirst({ where: { url: contestUrl } });
     const contest = await prisma.registered.findMany({
       where: { contestId: con.id },
       include: { user: true },
+      orderBy: { registeredAt: "desc" },
+      skip: offSet,
+      take: limit || 10,
     });
     const res = contest.map((ele) => ele.user);
     return res;
   },
 
-  getAllSubmissions: async (_, { userId }) => {
+  getAllSubmissions: async (_, { userId, Pagination }) => {
+    const { page, limit } = Pagination || {};
+    if (page == -1) throw new Error("Invalid Page Number!!");
+    const offSet = ((page || 1) - 1) * (limit || 10);
     const user = await prisma.user.findFirst({
       where: { id: userId },
       include: {
         userSubmissions: {
           include: { problem: true },
           orderBy: [{ submittedAt: "desc" }],
+          skip: offSet,
+          take: limit || 10,
         },
       },
     });
@@ -372,9 +394,12 @@ const quary = {
 
   getAllParticipatedContests: async (
     _,
-    { userId },
+    { userId, Pagination },
     { user, isAuthenticated }
   ) => {
+    const { page, limit } = Pagination || {};
+    if (page == -1) throw new Error("Invalid Page Number!!");
+    const offSet = ((page || 1) - 1) * (limit || 10);
     // if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const userDet = await prisma.user.findFirst({
       where: { id: userId },
@@ -382,6 +407,8 @@ const quary = {
         registered: {
           include: { contest: true },
           orderBy: [{ registeredAt: "desc" }],
+          skip: offSet,
+          take: limit || 10,
         },
       },
     });
@@ -393,16 +420,29 @@ const quary = {
     return pastContests;
   },
 
-  getAllOrganisedContests: async (_, __, { user, isAuthenticated }) => {
+  getAllOrganisedContests: async (
+    _,
+    { Pagination },
+    { user, isAuthenticated }
+  ) => {
+    const { page, limit } = Pagination || {};
+    if (page == -1) throw new Error("Invalid Page Number!!");
+    const offSet = ((page || 1) - 1) * (limit || 10);
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const organised = await prisma.contest.findMany({
       where: { owner: user.id },
       // where: { OR: [{ owner: user.id }, { mediators: { contains: user.id } }] },
+      orderBy: [{ startTime: "desc" }],
+      skip: offSet,
+      take: limit || 10,
     });
     return organised;
   },
 
-  getContestRankings: async (_, { contestUrl }, { user }) => {
+  getContestRankings: async (_, { contestUrl, Pagination }, { user }) => {
+    const { page, limit } = Pagination || {};
+    if (page == -1) throw new Error("Invalid Page Number!!");
+    const offSet = ((page || 1) - 1) * (limit || 10);
     const contest = await prisma.contest.findFirst({
       where: { url: contestUrl },
     });
@@ -410,6 +450,8 @@ const quary = {
       where: { contestId: contest.id },
       orderBy: [{ score: "desc" }, { lastSubmitted: "asc" }],
       include: { User: true },
+      skip: offSet,
+      take: limit || 10,
     });
     return rankings;
   },
