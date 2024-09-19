@@ -1,4 +1,5 @@
 const { gql } = require("apollo-server-express");
+const prisma=require("../client/prisma");
 
 const typedefs = gql`
   scalar Date
@@ -237,4 +238,27 @@ const typedefs = gql`
   }
 `;
 
-module.exports = { typedefs };
+const typeResovers = {
+  Problem: {
+    examples: async (parent, {}, { user }) => {
+      const examples = await prisma.example.findMany({
+        where: { problemId: parent.id },
+      });
+      return examples;
+    },
+  },
+  ProblemTable: {
+    status: async (parent, {}, { user, isAuthenticated }) => {
+      if (!isAuthenticated) return "none";
+      const submitted = await prisma.userSubmissions.findMany({
+        where: { userId: user.id, problemId: parent.id },
+      });
+      if (submitted?.length == 0) return "none";
+      const accepted = submitted.findIndex((ele) => ele.isAccepted == true);
+      if (accepted != -1) return "done";
+      else return "try";
+    },
+  },
+};
+
+module.exports = { typedefs,typeResovers };

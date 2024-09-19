@@ -3,8 +3,10 @@ const { ApolloServer, gql } = require("apollo-server-express");
 const cors = require("cors");
 require("dotenv").config();
 const { jwt_decode } = require("./services/jwt/jwt");
-const { typedefs } = require("./graphql/typedefs");
-const { mutaions, quary, typeResovers } = require("./graphql/reslovers");
+const { typedefs, typeResovers } = require("./graphql/typedefs");
+// const { mutaions, quary, typeResovers } = require("./graphql/reslovers");
+const mutations = require("./graphql/mutations");
+const quaryResolvers = require("./graphql/resolvers");
 
 const PORT = process.env.PORT || 4000;
 const typeDefs = gql`
@@ -17,10 +19,10 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     hello: async () => "Hello world!",
-    ...quary,
+    ...quaryResolvers,
   },
   Mutation: {
-    ...mutaions,
+    ...mutations,
   },
   ...typeResovers,
 };
