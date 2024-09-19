@@ -192,6 +192,13 @@ const mutaions = {
 };
 
 const quary = {
+  findProblem: async (_, { title }) => {
+    const problems = await prisma.problem.findMany({
+      where: { title: { contains: title } },
+      take: 10,
+    });
+    return problems;
+  },
   getProblemSubmissions: async (
     _,
     { problemId, Pagination },
@@ -295,7 +302,7 @@ const quary = {
     const currentTime = new Date();
     const problems = await prisma.problem.findMany({
       where: { createdAt: { lte: currentTime } },
-      orderBy: { createdAt: "desc" },
+      // orderBy: { createdAt: "desc" },
       skip: offSet,
       take: limit || 10,
     });

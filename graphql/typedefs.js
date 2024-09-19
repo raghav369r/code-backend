@@ -186,6 +186,7 @@ const typedefs = gql`
     getContestRankings(contestUrl: String!,Pagination:Pagination): [ContestPerformance]
     getContests: getContestsOutput
     getProblemSubmissions(problemId: ID!,Pagination:Pagination): [UserSubmission]
+    findProblem(title:String!):[Problem]
   }
   input problemInput {
     description: String
