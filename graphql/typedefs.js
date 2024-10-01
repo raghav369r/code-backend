@@ -192,13 +192,15 @@ const typedefs = gql`
   input problemInput {
     description: String
     difficulty: String
-    startCode: String
+    # startCode: String
     topics: String
-    solutionCode: String
-    constraints: String
-    expectedComplexity: String
+    # solutionCode: String
+    # constraints: String
+    # expectedComplexity: String
     examples: [exampleInput]
     title: String
+    testcases:String
+    createdAt:Date
   }
   input exampleInput {
     input: String

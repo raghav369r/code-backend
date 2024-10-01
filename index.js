@@ -39,6 +39,7 @@ const server = new ApolloServer({
       user = null;
     }
     const isAuthenticated = user ? true : false;
+    console.log("here: ", isAuthenticated);
     return { user, isAuthenticated };
   },
 });

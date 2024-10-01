@@ -1,8 +1,8 @@
-const prisma=require("../../client/prisma");
+const prisma = require("../../client/prisma");
 const { addNewProblem } = require("../../services/addToDB/problem");
 const { scheduleEmail } = require("../../services/mailService/mail");
 
-const mutations={
+const mutations = {
   registerToContest: async (_, { contestId }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const exist = await prisma.registered.findFirst({
@@ -38,6 +38,11 @@ const mutations={
       organisation,
       contestQuestions,
     } = newContest;
+    // if (new Date(startTime) < new Date())
+    //   throw new Error("startDate must be in future!");
+    // if (new Date(startTime) > new Date(endTime))
+    //   throw new Error("endDate must be aster startDate!");
+
     const pids = await Promise.all(
       contestQuestions.map(async (ele) => {
         const { id } = await addNewProblem(ele, user.id, endTime);
@@ -61,10 +66,13 @@ const mutations={
     return contest;
   },
   addProblem: async (_, { newProblem }, { user, isAuthenticated }) => {
+    console.log("here");
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
-    const nprob = await addNewProblem(newProblem, user.id);
-    return nprob;
+    console.log(newProblem);
+    throw Error("Still developing!!");
+    // const nprob = await addNewProblem(newProblem, user.id);
+    // return nprob;
   },
-}
+};
 
-module.exports=mutations;
+module.exports = mutations;
