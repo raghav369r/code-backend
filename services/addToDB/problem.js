@@ -16,27 +16,22 @@ const prisma = require("../../client/prisma");
 //   testCases: "",
 // };
 const validateProblem = (formData) => {
-  const {
-    title,
-    description,
-    createdAt,
-    examples,
-    testCases,
-  } = formData;
+  const { title, description, createdAt, examples, testCases } = formData;
   let errors = [];
-  if(description=="") errors.push("Description can't ne empty or unmodifies!!");
-  if(title.length<=4) errors.push("Title can't be less than 4 chars");
-  const addDate=new Date(createdAt);
-  if(new Date()-addDate>10000) errors.push("Add Date must be some time in future!!");
-  examples.forEach(example => {
-    if(example.output==""){
+  if (description == "")
+    errors.push("Description can't ne empty or unmodifies!!");
+  if (title.length <= 4) errors.push("Title can't be less than 4 chars");
+  const addDate = new Date(createdAt);
+  if (new Date() - addDate > 10000)
+    errors.push("Add Date must be some time in future!!");
+  examples.forEach((example) => {
+    if (example.output == "") {
       errors.push("output in example can't be empty!!");
       return errors;
     }
   });
   return errors.length ? errors : null;
 };
-
 
 const addNewProblem = async (ele, userId) => {
   const {
@@ -49,20 +44,21 @@ const addNewProblem = async (ele, userId) => {
     expectedComplexity,
     examples,
     title,
+    createdAt,
   } = ele;
   try {
     const problem = await prisma.problem.create({
       data: {
         description,
         difficulty,
-        startCode,
+        startCode: "",
         topics,
-        solutionCode,
-        constraints,
-        expectedComplexity,
+        solutionCode: "",
+        constraints: "",
+        expectedComplexity: "",
         createdBy: userId,
         title,
-        createdAt: new Date(endTime).toISOString(),
+        createdAt: new Date(createdAt),
       },
     });
     await Promise.all(
@@ -80,10 +76,6 @@ const addNewProblem = async (ele, userId) => {
 };
 
 module.exports = { addNewProblem, validateProblem };
-
-
-
-
 
 // <!-- Title of the Problem -->
 // # Two sum

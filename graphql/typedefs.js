@@ -1,5 +1,5 @@
 const { gql } = require("apollo-server-express");
-const prisma=require("../client/prisma");
+const prisma = require("../client/prisma");
 
 const typedefs = gql`
   scalar Date
@@ -183,11 +183,17 @@ const typedefs = gql`
     getAllregistered(contestUrl: String!, Pagination: Pagination): [User]
     getAllSubmissions(userId: ID!, Pagination: Pagination): [UserSubmission]
     getAllParticipatedContests(userId: ID!, Pagination: Pagination): [Contest]
-    getAllOrganisedContests(Pagination:Pagination): [Contest]
-    getContestRankings(contestUrl: String!,Pagination:Pagination): [ContestPerformance]
+    getAllOrganisedContests(Pagination: Pagination): [Contest]
+    getContestRankings(
+      contestUrl: String!
+      Pagination: Pagination
+    ): [ContestPerformance]
     getContests: getContestsOutput
-    getProblemSubmissions(problemId: ID!,Pagination:Pagination): [UserSubmission]
-    findProblem(title:String!):[Problem]
+    getProblemSubmissions(
+      problemId: ID!
+      Pagination: Pagination
+    ): [UserSubmission]
+    findProblem(title: String!): [Problem]
   }
   input problemInput {
     description: String
@@ -199,8 +205,8 @@ const typedefs = gql`
     # expectedComplexity: String
     examples: [exampleInput]
     title: String
-    testcases:String
-    createdAt:Date
+    testcases: String
+    createdAt: Date
   }
   input exampleInput {
     input: String
@@ -208,13 +214,13 @@ const typedefs = gql`
     explanation: String
   }
   input contestInput {
-    name: String
-    url: String
-    startTime: Date
-    endTime: Date
-    mediators: String
-    organisation: String
-    contestQuestions: [problemInput]
+    name: String!
+    url: String!
+    startTime: Date!
+    endTime: Date!
+    # mediators: String
+    # organisation: String
+    contestQuestions: [ID!]!
   }
   input minput {
     id: String
@@ -263,4 +269,4 @@ const typeResovers = {
   },
 };
 
-module.exports = { typedefs,typeResovers };
+module.exports = { typedefs, typeResovers };
