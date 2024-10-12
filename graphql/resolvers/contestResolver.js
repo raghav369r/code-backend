@@ -76,19 +76,19 @@ const resolvers = {
         contestQuestions: { include: { problem: true } },
       },
     });
-    // const currTime = new Date();
-    // if (currTime > new Date(contest.startTime) && currTime < contest.endTime) {
-    //   const cperformence = await prisma.contestPerformance.findFirst({
-    //     where: { AND: [{ userId: user.id }, { contestId: contest.id }] },
-    //   });
-    //   if (!cperformence) throw new Error("You not registerd to contest!!");
-    //   if (cperformence?.isBlocked) throw new Error("blocked");
-    //   if (cperformence?.isJoined) throw new Error("already isJoined");
-    //   await prisma.contestPerformance.updateMany({
-    //     where: { AND: [{ userId: user.id }, { contestId: contest.id }] },
-    //     data: { isJoined: true },
-    //   });
-    // }
+    const currTime = new Date();
+    if (currTime > new Date(contest.startTime) && currTime < contest.endTime) {
+      const cperformence = await prisma.contestPerformance.findFirst({
+        where: { AND: [{ userId: user.id }, { contestId: contest.id }] },
+      });
+      if (!cperformence) throw new Error("You not registerd to contest!!");
+      if (cperformence?.isBlocked) throw new Error("blocked");
+      if (cperformence?.isJoined) throw new Error("already isJoined");
+      await prisma.contestPerformance.updateMany({
+        where: { AND: [{ userId: user.id }, { contestId: contest.id }] },
+        data: { isJoined: true },
+      });
+    }
     return contest;
   },
 

@@ -16,6 +16,7 @@ const typedefs = gql`
     githubLink: String
     instagramLink: String
     portfolioLink: String
+    organisation: Boolean
     # registered: [Registered]  #####
     # userSubmissions: [UserSubmission] #####
   }
@@ -117,6 +118,7 @@ const typedefs = gql`
     email: String
     password: String
     userName: String
+    organisation: Boolean
     # firstName: String
     # lastName: String
   }
@@ -173,7 +175,7 @@ const typedefs = gql`
   type Query {
     isContestNameAvailable(contestName: String!): contestName
     getUser(userId: ID): User!
-    loginUser(email: String!, password: String!): Auth!
+    loginUser(email: String!, password: String!, organisation: Boolean): Auth!
     getAllProblems(Pagination: Pagination): [ProblemTable]
     getProblem(id: ID!): Problem
     runCode(input: codeInput): runOutput

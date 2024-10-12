@@ -1,11 +1,11 @@
-const prisma=require("../../client/prisma");
+const prisma = require("../../client/prisma");
 const bcrypt = require("bcrypt");
 const { sign_token } = require("../../services/jwt/jwt");
 require("dotenv").config();
 
 const ROUNDS = process.env.SALT_ROUNDS || 10;
 
-const resolvers={
+const resolvers = {
   getUser: async (_, { userId }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     const nuser = await prisma.user.findFirst({
@@ -14,15 +14,28 @@ const resolvers={
     return nuser;
   },
 
-  loginUser: async (_, { email, password }) => {
+  loginUser: async (_, { email, password, organisation }) => {
     const user = await prisma.user.findFirst({
-      where: { email: { equals: email, mode: "insensitive" } },
+      where: {
+        AND: [
+          { email: { equals: email, mode: "insensitive" } },
+          { organisation },
+        ],
+      },
     });
-    if (!user) throw new Error("no user exist with given email!!");
+    if (!user)
+      throw new Error(
+        `no ${organisation ? "organisation" : "user"} exist with given email!!`
+      );
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) throw new Error("Invalid password!!");
-    const token = sign_token({ id: user.id, email, firstName: user.firstName });
+    const token = sign_token({
+      id: user.id,
+      email,
+      organisation,
+      name: user.firstName + user.lastName,
+    });
     return { token, user };
   },
 
@@ -72,7 +85,6 @@ const resolvers={
     });
     return organised;
   },
+};
 
-}
-
-module.exports=resolvers;
+module.exports = resolvers;

@@ -21,7 +21,7 @@ async function sendEmail(to, subject, text) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully");
+    // console.log("Email sent successfully");
   } catch (error) {
     console.error("Error sending email:", error);
   }
@@ -53,6 +53,6 @@ function scheduleEmail(email, startTime, url) {
     );
   });
 
-  console.log(`Email scheduled for: ${scheduledTime} to ${email}`);
+  // console.log(`Email scheduled for: ${scheduledTime} to ${email}`);
 }
 module.exports = { scheduleEmail };

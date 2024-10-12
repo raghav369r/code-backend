@@ -1,4 +1,3 @@
-const { date } = require("zod");
 const prisma = require("../../client/prisma");
 const { addNewProblem } = require("../../services/addToDB/problem");
 const { scheduleEmail } = require("../../services/mailService/mail");
@@ -26,6 +25,7 @@ const mutations = {
 
   addContest: async (_, { newContest }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+    if (!user?.organisation) throw new Error("Not Autherisesed!!");
     const exist = await prisma.contest.findFirst({
       where: { url: newContest.url },
     });
@@ -44,7 +44,7 @@ const mutations = {
           startTime: new Date(startTime),
           endTime: new Date(endTime),
           mediators: "",
-          organisation: "",
+          organisation: user?.name,
         },
       });
       const added = await prisma.contestQuestions.createMany({
@@ -60,6 +60,8 @@ const mutations = {
   },
   addProblem: async (_, { newProblem }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
+    if (!user?.organisation) throw new Error("Not Autherisesed!!");
+    
     // \n new line
     // \\n \n inside code
     const { testcases } = newProblem;

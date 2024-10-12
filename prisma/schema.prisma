@@ -26,6 +26,7 @@ model User {
   githubLink         String?
   instagramLink      String?
   portfolioLink      String?
+  organisation       Boolean @default(false)
   registered         Registered[]
   userSubmissions    UserSubmissions[]
   ContestPerformance ContestPerformance[]
