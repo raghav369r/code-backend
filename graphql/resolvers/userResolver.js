@@ -34,7 +34,7 @@ const resolvers = {
       id: user.id,
       email,
       organisation,
-      name: user.firstName + user.lastName,
+      name: user.userName,
     });
     return { token, user };
   },

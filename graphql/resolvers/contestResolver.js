@@ -1,4 +1,4 @@
-const prisma=require("../../client/prisma");
+const prisma = require("../../client/prisma");
 
 const resolvers = {
   isRigistered: async (_, { contestId }, { user, isAuthenticated }) => {
@@ -77,11 +77,12 @@ const resolvers = {
       },
     });
     const currTime = new Date();
+    if (contest.owner == user.id) return contest;
     if (currTime > new Date(contest.startTime) && currTime < contest.endTime) {
       const cperformence = await prisma.contestPerformance.findFirst({
         where: { AND: [{ userId: user.id }, { contestId: contest.id }] },
       });
-      if (!cperformence) throw new Error("You not registerd to contest!!");
+      if (!cperformence) throw new Error("Your not registerd to contest!!");
       if (cperformence?.isBlocked) throw new Error("blocked");
       if (cperformence?.isJoined) throw new Error("already isJoined");
       await prisma.contestPerformance.updateMany({

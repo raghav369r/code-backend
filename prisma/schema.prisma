@@ -26,10 +26,11 @@ model User {
   githubLink         String?
   instagramLink      String?
   portfolioLink      String?
-  organisation       Boolean @default(false)
+  organisation       Boolean              @default(false)
   registered         Registered[]
   userSubmissions    UserSubmissions[]
   ContestPerformance ContestPerformance[]
+  Comments           Comment[]
 }
 
 model Problem {
@@ -48,6 +49,7 @@ model Problem {
   contestQuestions   ContestQuestions[]
   userSubmissions    UserSubmissions[]
   testCases          TestCase[]
+  comments           Comment[]
 }
 
 model TestCase {
@@ -136,4 +138,14 @@ model ContestSubmissions {
   problemId   String   @db.ObjectId
   isAccepted  Boolean
   submittedAt DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  comment   String
+  problemId String   @db.ObjectId
+  time      DateTime
+  problem   Problem  @relation(fields: [problemId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }

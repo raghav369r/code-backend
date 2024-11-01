@@ -34,6 +34,7 @@ const typedefs = gql`
     constraints: String
     expectedComplexity: String
     examples: [Example]
+    comments: [Comment]
     # contestQuestions: [ContestQuestion]
     # userSubmissions: [UserSubmission]
     # testCases: [TestCase]
@@ -168,6 +169,14 @@ const typedefs = gql`
     score: Int
     User: User
   }
+  type Comment {
+    id: ID
+    userId: ID
+    comment: String
+    problemId: ID
+    problem: Problem
+    user: User
+  }
   input Pagination {
     page: Int
     limit: Int
@@ -196,6 +205,8 @@ const typedefs = gql`
       Pagination: Pagination
     ): [UserSubmission]
     findProblem(title: String!): [Problem]
+    manageProblmes: [Problem]
+    getComments(problemId: ID!,page:Int,limit:Int): [Comment]
   }
   input problemInput {
     description: String
@@ -245,6 +256,7 @@ const typedefs = gql`
     addProblem(newProblem: problemInput): Problem
     editProfile(input: minput): User!
     blockUser(contestId: ID!): Boolean
+    addComment(problemId: ID!,comment:String): Comment
   }
 `;
 

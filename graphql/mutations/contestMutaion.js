@@ -61,7 +61,7 @@ const mutations = {
   addProblem: async (_, { newProblem }, { user, isAuthenticated }) => {
     if (!isAuthenticated) throw new Error("Missing token or expired Token!!");
     if (!user?.organisation) throw new Error("Not Autherisesed!!");
-    
+
     // \n new line
     // \\n \n inside code
     const { testcases } = newProblem;

@@ -1,4 +1,4 @@
-const prisma=require("../../client/prisma");
+const prisma = require("../../client/prisma");
 
 const resolvers = {
   findProblem: async (_, { title }) => {
@@ -75,6 +75,20 @@ const resolvers = {
     });
     return user.userSubmissions;
   },
+  manageProblmes: async (_, { page }, { user, isAuthenticated }) => {
+    if (!isAuthenticated) throw new Error("Missing or expired Token!!");
+    // if (!user?.organisation) throw new Error("Not Autherised!!");
+    try {
+      const res = prisma.problem.findMany({
+        where: { createdBy: user.id },
+        take: 10,
+        skip: !page ? 0 : page * 10,
+      });
+      return res;
+    } catch (ex) {
+      throw new Error("Error fetching data!!");
+    }
+  },
 };
 
-module.exports= resolvers;
+module.exports = resolvers;
