@@ -22,7 +22,7 @@ const validateProblem = (formData) => {
     errors.push("Description can't ne empty or unmodifies!!");
   if (title.length <= 4) errors.push("Title can't be less than 4 chars");
   const addDate = new Date(createdAt);
-  if (new Date() - addDate > 10000)
+  if (new Date() - addDate > 1000*60*10)
     errors.push("Add Date must be some time in future!!");
   examples.forEach((example) => {
     if (example.output == "") {

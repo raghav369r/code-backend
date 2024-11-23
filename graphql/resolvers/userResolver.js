@@ -85,6 +85,11 @@ const resolvers = {
     });
     return organised;
   },
+  getProblemsSolved: async (_, { userId }, { user, isAuthenticated }) => {
+    const id = userId || user.id;
+    if (!userId) throw new Error("Provided invalid userId or expired token!!");
+    return await prisma.problemsSolved.findFirst({ where: { userId: id } });
+  },
 };
 
 module.exports = resolvers;

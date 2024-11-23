@@ -57,6 +57,7 @@ const mutations = {
     var user = await prisma.user.create({
       data: { userName, password: hashed, email, organisation },
     });
+    await prisma.problemsSolved.create({ data: { userId: user.id } });
     const token = await sign_token({
       id: user.id,
       email,

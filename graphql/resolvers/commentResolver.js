@@ -8,14 +8,15 @@ const resolver = {
   ) => {
     if (!problemId) throw new Error("missing probelm id");
     // check if the problem id is valid
-    let reqpage = page ? page : 0,
+    let reqpage = page ? page : 1,
       reqlimit = limit ? limit : 10;
-    let offset = reqpage * reqlimit;
+    let offset = (reqpage - 1) * reqlimit;
     const res = prisma.comment.findMany({
       where: { problemId },
       take: reqlimit,
       skip: offset,
-      include: { user: true},
+      include: { user: true },
+      orderBy: { time: "desc" },
     });
     return res;
   },

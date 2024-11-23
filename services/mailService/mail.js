@@ -2,15 +2,15 @@ const nodemailer = require("nodemailer");
 const schedule = require("node-schedule");
 require("dotenv").config();
 
+let transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMTP_MAIL, 
+    pass: process.env.SMPT_PASSWORD, 
+  },
+});
 // Function to send an email
 async function sendEmail(to, subject, text) {
-  let transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.SMTP_MAIL, 
-      pass: process.env.SMPT_PASSWORD, 
-    },
-  });
 
   let mailOptions = {
     from: process.env.SMTP_MAIL, 
@@ -34,10 +34,10 @@ function scheduleEmail(email, startTime, url) {
   const scheduledTime = new Date(currentTime.getTime() - 10 * 60 * 1000);
   sendEmail(
     email,
-    "You have registered to a contest on chat here",
+    "You have registered to a contest on code here",
     `contest will start at ${new Date(
       startTime
-    ).toISOString()} we will remind you again before 10minutes of start of contest,
+    ).toLocaleString()} we will remind you again before 10minutes of start of contest,
      
     
     join contest at https://codehere-v1.web.app/contest/${url}`
@@ -46,9 +46,9 @@ function scheduleEmail(email, startTime, url) {
   schedule.scheduleJob(scheduledTime, () => {
     sendEmail(
       email,
-      `contest your registered will start with in 10 minutes i.e ${new Date(
+      `contest your registered will start within 10 minutes i.e ${new Date(
         startTime
-      ).toISOString()}`,
+      ).toLocaleString()}`,
       `join contest at https://codehere-v1.web.app/contest/${url}`
     );
   });

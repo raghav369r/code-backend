@@ -177,6 +177,17 @@ const typedefs = gql`
     problem: Problem
     user: User
   }
+  type problemsSolved {
+    id: ID
+    userId: String
+    cpp: Int
+    c: Int
+    python: Int
+    java: Int
+    javascript: Int
+    ruby: Int
+    r: Int
+  }
   input Pagination {
     page: Int
     limit: Int
@@ -206,7 +217,8 @@ const typedefs = gql`
     ): [UserSubmission]
     findProblem(title: String!): [Problem]
     manageProblmes: [Problem]
-    getComments(problemId: ID!,page:Int,limit:Int): [Comment]
+    getComments(problemId: ID!, page: Int, limit: Int): [Comment]
+    getProblemsSolved(userId: ID): problemsSolved
   }
   input problemInput {
     description: String
@@ -256,7 +268,7 @@ const typedefs = gql`
     addProblem(newProblem: problemInput): Problem
     editProfile(input: minput): User!
     blockUser(contestId: ID!): Boolean
-    addComment(problemId: ID!,comment:String): Comment
+    addComment(problemId: ID!, comment: String): Comment
   }
 `;
 

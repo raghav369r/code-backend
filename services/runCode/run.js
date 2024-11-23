@@ -8,14 +8,12 @@ const headers = {
 const runCode = async (input) => {
   const { code, language, problemId, stdin } = input;
   var problemExamples = null,
-    input = "",
-    output = "";
+    input = "";
   if (problemId) {
     problemExamples = await prisma.example.findMany({ where: { problemId } });
     input = `${problemExamples.length}`;
     problemExamples.forEach((example) => {
       input += ` ${example.input}`;
-      output += ` ${example.output}`;
     });
   }
 

@@ -63,7 +63,7 @@ const resolvers = {
     const contest = await prisma.contest.findFirst({
       where: { url: contestUrl },
     });
-    if (!contest) throw new Error("No contest exist with this page!!");
+    if (!contest) throw new Error("No contest exist with this Name!!");
     return contest;
   },
 
@@ -101,7 +101,6 @@ const resolvers = {
     const contest = await prisma.registered.findMany({
       where: { contestId: con.id },
       include: { user: true },
-      orderBy: { registeredAt: "desc" },
       skip: offSet,
       take: limit || 10,
     });

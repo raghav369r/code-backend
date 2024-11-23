@@ -27,6 +27,7 @@ model User {
   instagramLink      String?
   portfolioLink      String?
   organisation       Boolean              @default(false)
+  problemsSolved     ProblemsSolved?      @relation("ProblemsSolved")
   registered         Registered[]
   userSubmissions    UserSubmissions[]
   ContestPerformance ContestPerformance[]
@@ -148,4 +149,17 @@ model Comment {
   time      DateTime
   problem   Problem  @relation(fields: [problemId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model ProblemsSolved {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String @unique @db.ObjectId
+  cpp        Int    @default(0)
+  c          Int    @default(0)
+  python     Int    @default(0)
+  java       Int    @default(0)
+  javascript Int    @default(0)
+  ruby       Int    @default(0)
+  r          Int    @default(0)
+  user       User   @relation(name: "ProblemsSolved", fields: [userId], references: [id])
 }
