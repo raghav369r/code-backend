@@ -7,6 +7,7 @@ const { typedefs, typeResovers } = require("./graphql/typedefs");
 // const { mutaions, quary, typeResovers } = require("./graphql/reslovers");
 const mutations = require("./graphql/mutations");
 const quaryResolvers = require("./graphql/resolvers");
+const prisma = require("./client/prisma");
 
 const PORT = process.env.PORT || 4000;
 const typeDefs = gql`
@@ -21,6 +22,7 @@ const resolvers = {
     hello: async () => "Hello world!",
     ...quaryResolvers,
   },
+
   Mutation: {
     ...mutations,
   },

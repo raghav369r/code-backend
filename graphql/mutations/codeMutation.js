@@ -1,5 +1,5 @@
 const prisma = require("../../client/prisma");
-const { runCode } = require("../../services/runCode/run");
+const { runCode, runTestCases } = require("../../services/runCode/run");
 
 const mutations = {
   // Not checked if the user is blocked from contest incase of contest submission
@@ -17,6 +17,7 @@ const mutations = {
     var isAccepted = false;
     var errorDetails = "";
     const res = await runCode(input);
+    // console.log("runned: ", res);
     errorDetails = res.stderr || res.error;
     const errorIndex = res.testCasesResult.indexOf(false);
     if (errorIndex == -1) isAccepted = true;
@@ -29,6 +30,12 @@ const mutations = {
         include: { contestQuestions: true },
       });
     const { id: contestId, endTime, startTime } = contest || {};
+    let testCaseResult;
+    if (isAccepted) {
+      testCaseResult = await runTestCases(input);
+      // console.log("test result:", testCaseResult);
+      isAccepted = testCaseResult?.passed == testCaseResult?.total;
+    }
     if (isAccepted) {
       const alreadyDone = await prisma.userSubmissions.findFirst({
         where: {
@@ -50,6 +57,16 @@ const mutations = {
         }
       }
     }
+    const {
+      total,
+      passed,
+      errorDetails: errde,
+      input: testInput,
+      output,
+      expectedOutput,
+    } = testCaseResult || {};
+    if (!errorDetails) errorDetails = " " + errde || "Wrong Answer";
+    // console.log("Error details: ",errorDetails);
     const submit = await prisma.userSubmissions.create({
       data: {
         userId: user.id,
@@ -59,9 +76,12 @@ const mutations = {
         isInContest: !!contestId,
         errorDetails: errorDetails,
         isAccepted: isAccepted,
-        inputCase: "" + errorIndex,
-        output: errorIndex != -1 ? res?.testcaseOutput?.[errorIndex] : "",
-        expectedOutput: res.expectedOutput,
+        output:
+          output || errorIndex != -1 ? res?.testcaseOutput?.[errorIndex] : "",
+        expectedOutput: expectedOutput || res.expectedOutput,
+        input: testInput || res.input,
+        passed: passed || 0,
+        total: total || -1,
       },
     });
     if (!input.contestUrl)
@@ -114,7 +134,10 @@ const mutations = {
       }
     }
 
-    return { ...submit, testCasesResult: res.testCasesResult };
+    return {
+      ...submit,
+      testCasesResult: res.testCasesResult,
+    };
   },
 };
 

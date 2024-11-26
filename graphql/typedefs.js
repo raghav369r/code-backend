@@ -104,9 +104,11 @@ const typedefs = gql`
     submittedAt: Date
     code: String
     language: String
-    inputCase: String
+    input: String
     output: String
     expectedOutput: String
+    passed: Int
+    total: Int
     testCasesResult: [Boolean]
   }
   input submitInput {
@@ -131,6 +133,7 @@ const typedefs = gql`
     stdout: String
     error: String
     stderr: String
+    input: String
     testCasesResult: [Boolean]
     testcaseOutput: [String]
   }

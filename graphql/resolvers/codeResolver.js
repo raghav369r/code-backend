@@ -1,4 +1,4 @@
-const prisma=require("../../client/prisma");
+const prisma = require("../../client/prisma");
 const { runCode } = require("../../services/runCode/run");
 
 const resolvers = {

@@ -476,13 +476,17 @@ const typeResovers = {
   ProblemTable: {
     status: async (parent, {}, { user, isAuthenticated }) => {
       if (!isAuthenticated) return "none";
-      const submitted = await prisma.userSubmissions.findMany({
-        where: { userId: user.id, problemId: parent.id },
-      });
-      if (submitted?.length == 0) return "none";
-      const accepted = submitted.findIndex((ele) => ele.isAccepted == true);
-      if (accepted != -1) return "done";
-      else return "try";
+      try {
+        const submitted = await prisma.userSubmissions.findMany({
+          where: { userId: user.id, problemId: parent.id },
+        });
+        if (submitted?.length == 0) return "none";
+        const accepted = submitted.findIndex((ele) => ele.isAccepted == true);
+        if (accepted != -1) return "done";
+        else return "try";
+      } catch (ex) {
+        console.log(ex.message);
+      }
     },
   },
 };

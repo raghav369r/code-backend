@@ -66,24 +66,21 @@ const mutations = {
     // \\n \n inside code
     const { testcases } = newProblem;
     const testcaselines = testcases.split("\n");
+    !testcaselines.at(-1) && testcaselines.pop();
     if (testcaselines.length % 2) throw Error("Test cases are not balenced!!");
     const nprob = await addNewProblem(newProblem, user.id);
-    let iomap = [],
-      ind = 0;
-    testcaselines.forEach((ele) => {
-      if (ind % 2 == 0)
-        iomap.push({
-          input: ele,
-          output: testcaselines[ind + 1],
-          problemId: nprob.id,
-        });
-      ind++;
+    let inputstr = "",
+      outputstr = "";
+    testcaselines.forEach((ele, ind) => {
+      if (ind % 2 == 0) inputstr += ele + "\n";
+      else outputstr += ele + "\n";
     });
     try {
-      await prisma.testCase.createMany({ data: iomap });
+      const res = await prisma.testCase.create({
+        data: { input: inputstr, output: outputstr, problemId: nprob.id },
+      });
     } catch (ex) {
-      console.log(ex);
-      throw new Error(ex.message);
+      console.log(ex.message);
     }
     return nprob;
   },
